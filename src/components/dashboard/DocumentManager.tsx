@@ -12,7 +12,8 @@ import {
   ListItemSecondaryAction, 
   IconButton,
   Button,
-  Chip
+  Chip,
+  Divider
 } from '@mui/material';
 import { 
   FileText, 
@@ -183,7 +184,6 @@ export function DocumentManager({ documents: initialDocs, entityId, entityType, 
         open={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
         title="Upload Document"
-        maxWidth="sm"
       >
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <Box 
@@ -226,8 +226,9 @@ export function DocumentManager({ documents: initialDocs, entityId, entityType, 
 
             <FormField label="Category">
                 <Select
+                    label="Category"
                     value={uploadState.category}
-                    onChange={(e) => setUploadState({ ...uploadState, category: e.target.value })}
+                    onChange={(e) => setUploadState({ ...uploadState, category: String(e) })}
                     options={[
                         { value: 'INVOICE', label: 'Invoice' },
                         { value: 'BILL_OF_LADING', label: 'Bill of Lading' },

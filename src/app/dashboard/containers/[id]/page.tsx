@@ -1308,7 +1308,8 @@ export default function ContainerDetailPage() {
                                     size: d.fileSize || 0,
                                     uploadedBy: d.uploadedBy || 'User',
                                     category: d.category || 'OTHER',
-                                    url: d.fileUrl
+                                    url: d.fileUrl,
+                                    createdAt: d.uploadedAt || new Date().toISOString()
                                 }))}
                                 entityId={container.id}
                                 entityType="container"
