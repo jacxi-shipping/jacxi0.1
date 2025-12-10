@@ -387,7 +387,6 @@ export default function SettingsPage() {
         <DashboardPanel 
           title="Profile & Identity" 
           description="Update your personal information"
-          icon={<User className="w-5 h-5" />}
         >
           <form onSubmit={handleSaveProfile} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -440,13 +439,12 @@ export default function SettingsPage() {
         <DashboardPanel 
           title="Interface Preferences" 
           description="Customize your dashboard experience"
-          icon={<Palette className="w-5 h-5" />}
         >
           <form onSubmit={handleSavePreferences} className="space-y-4">
             <Select
               label="Theme"
               value={settingsForm.theme}
-              onChange={(value) => setSettingsForm(prev => ({ ...prev, theme: value }))}
+              onChange={(value) => setSettingsForm(prev => ({ ...prev, theme: String(value) }))}
               options={[
                 { value: 'futuristic', label: 'Futuristic Dark' },
                 { value: 'dark', label: 'Classic Dark' },
@@ -458,7 +456,7 @@ export default function SettingsPage() {
               <Select
                 label="Sidebar Density"
                 value={settingsForm.sidebarDensity}
-                onChange={(value) => setSettingsForm(prev => ({ ...prev, sidebarDensity: value }))}
+                onChange={(value) => setSettingsForm(prev => ({ ...prev, sidebarDensity: String(value) }))}
                 options={[
                   { value: 'comfortable', label: 'Comfortable' },
                   { value: 'compact', label: 'Compact' },
@@ -467,7 +465,7 @@ export default function SettingsPage() {
               <Select
                 label="Language"
                 value={settingsForm.language}
-                onChange={(value) => setSettingsForm(prev => ({ ...prev, language: value }))}
+                onChange={(value) => setSettingsForm(prev => ({ ...prev, language: String(value) }))}
                 options={[
                   { value: 'en', label: 'English' },
                   { value: 'ar', label: 'Arabic' },
@@ -488,7 +486,6 @@ export default function SettingsPage() {
         <DashboardPanel 
           title="Notification Rules" 
           description="Manage your alert preferences"
-          icon={<Bell className="w-5 h-5" />}
         >
           <form onSubmit={handleSaveNotifications} className="space-y-4">
             {[
@@ -526,14 +523,13 @@ export default function SettingsPage() {
         <DashboardPanel 
           title="System & Backup" 
           description="Database management and security"
-          icon={<Database className="w-5 h-5" />}
         >
           <div className="space-y-6">
             <div className="p-4 border border-[var(--border)] rounded-lg bg-[var(--background)]">
               <div className="flex items-center justify-between mb-2">
                 <Typography variant="subtitle2" fontWeight="600">Two-Factor Authentication</Typography>
                 <Button 
-                  variant={settingsForm.twoFactorEnabled ? 'success' : 'outline'} 
+                  variant={settingsForm.twoFactorEnabled ? 'primary' : 'outline'} 
                   size="sm"
                   onClick={handleToggleTwoFactor}
                   disabled={savingSecurity}
@@ -589,7 +585,7 @@ export default function SettingsPage() {
                   <Button 
                     onClick={handleRestoreBackup}
                     disabled={backupState.running}
-                    variant="warning"
+                     variant="danger"
                     fullWidth
                     size="sm"
                   >

@@ -22,6 +22,7 @@ interface StatsCardProps {
 	};
 	variant?: 'default' | 'success' | 'warning' | 'error' | 'info';
 	size?: 'sm' | 'md' | 'lg';
+	delay?: number;
 }
 
 export default function StatsCard({
@@ -32,12 +33,16 @@ export default function StatsCard({
 	trend,
 	variant = 'default',
 	size = 'md',
+	delay = 0,
 }: StatsCardProps) {
 	const [isVisible, setIsVisible] = useState(false);
 
 	useEffect(() => {
-		setIsVisible(true);
-	}, []);
+		const timer = setTimeout(() => {
+			setIsVisible(true);
+		}, delay * 1000);
+		return () => clearTimeout(timer);
+	}, [delay]);
 
 	// Variant colors
 	const variantConfig = {
