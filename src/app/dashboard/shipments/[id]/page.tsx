@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { DashboardSurface, DashboardPanel, DashboardGrid } from '@/components/dashboard/DashboardSurface';
-import { Button } from '@/components/design-system';
+import { Button, DetailPageSkeleton } from '@/components/design-system';
 import { cn } from '@/lib/utils';
 import {
   ArrowLeft,
@@ -32,7 +32,7 @@ import {
   Ship,
 } from 'lucide-react';
 import { Tabs, Tab, Box, ImageList, ImageListItem, ImageListItemBar, IconButton as MuiIconButton } from '@mui/material';
-import { Breadcrumbs, toast, EmptyState, SkeletonCard, SkeletonTable, Tooltip, StatusBadge } from '@/components/design-system';
+import { Breadcrumbs, toast, EmptyState, Tooltip, StatusBadge } from '@/components/design-system';
 
 interface ShipmentEvent {
   id: string;
@@ -462,14 +462,7 @@ export default function ShipmentDetailPage() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <DashboardSurface>
-          <div className="flex h-[60vh] items-center justify-center">
-            <div className="flex flex-col items-center gap-3">
-              <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--border)] border-t-[var(--accent-gold)]" />
-              <p className="text-sm text-[var(--text-secondary)]">Loading shipment details...</p>
-            </div>
-          </div>
-        </DashboardSurface>
+        <DetailPageSkeleton />
       </ProtectedRoute>
     );
   }
