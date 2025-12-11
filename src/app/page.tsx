@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import Link from 'next/link';
-import { motion, useScroll, useTransform, useInView } from 'framer-motion';
+import { Fade, Slide, Zoom, Grow, Box } from '@mui/material';
 import { 
   ArrowRight, 
   Globe, 
@@ -22,14 +22,19 @@ import Header from '@/components/sections/Header';
 import Footer from '@/components/sections/Footer';
 import Button from '@/components/design-system/Button';
 import { StatsCard } from '@/components/design-system';
+import { useInView } from '@/hooks/useInView';
 
 // --- Components ---
 
 function Hero() {
-  const { scrollY } = useScroll();
-  const y1 = useTransform(scrollY, [0, 500], [0, 200]);
-  const y2 = useTransform(scrollY, [0, 500], [0, -150]);
-  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
+  const [mounted, setMounted] = useState(false);
+  
+  // Trigger animations on mount
+  useState(() => {
+    // Small delay to ensure client-side hydration for animations
+    const t = setTimeout(() => setMounted(true), 100);
+    return () => clearTimeout(t);
+  });
 
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-[var(--background)] pt-20">
@@ -44,106 +49,99 @@ function Hero() {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="mb-8 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-[var(--border)] shadow-sm"
-        >
-          <span className="flex h-2 w-2 rounded-full bg-[var(--accent-gold)] animate-pulse"></span>
-          <span className="text-xs font-bold text-[var(--text-secondary)] tracking-widest uppercase">Global Logistics Redefined</span>
-        </motion.div>
+        <Slide in={mounted} direction="down" timeout={800}>
+          <div className="mb-8 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-[var(--border)] shadow-sm">
+            <span className="flex h-2 w-2 rounded-full bg-[var(--accent-gold)] animate-pulse"></span>
+            <span className="text-xs font-bold text-[var(--text-secondary)] tracking-widest uppercase">Global Logistics Redefined</span>
+          </div>
+        </Slide>
 
-        <motion.h1 
-          style={{ y: y2 }}
-          className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-[var(--text-primary)] mb-8 max-w-6xl mx-auto leading-[1.1]"
-        >
-          <span className="block">Shipping Beyond</span>
-          <span className="block text-[var(--accent-gold)]">Boundaries.</span>
-        </motion.h1>
+        <Fade in={mounted} timeout={1000}>
+          <h1 
+            className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-[var(--text-primary)] mb-8 max-w-6xl mx-auto leading-[1.1]"
+          >
+            <span className="block">Shipping Beyond</span>
+            <span className="block text-[var(--accent-gold)]">Boundaries.</span>
+          </h1>
+        </Fade>
 
-        <motion.p 
-          style={{ opacity }}
-          className="text-lg md:text-xl text-[var(--text-secondary)] max-w-2xl mx-auto mb-12 leading-relaxed font-normal"
-        >
-          Experience premium logistics with precision tracking, white-glove service, and a global network that moves your world forward.
-        </motion.p>
+        <Fade in={mounted} timeout={1500}>
+          <p 
+            className="text-lg md:text-xl text-[var(--text-secondary)] max-w-2xl mx-auto mb-12 leading-relaxed font-normal"
+          >
+            Experience premium logistics with precision tracking, white-glove service, and a global network that moves your world forward.
+          </p>
+        </Fade>
 
         {/* Tracking Input */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          className="w-full max-w-lg mx-auto relative group"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-[var(--accent-gold)] to-blue-500 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-10"></div>
-          <div className="relative bg-white border border-[var(--border)] rounded-2xl p-2 flex items-center shadow-xl transition-colors duration-300 focus-within:border-[var(--accent-gold)]">
-            <div className="pl-4 text-[var(--text-secondary)]">
-              <Search className="w-5 h-5" />
+        <Zoom in={mounted} timeout={500} style={{ transitionDelay: '300ms' }}>
+          <div className="w-full max-w-lg mx-auto relative group">
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--accent-gold)] to-blue-500 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-10"></div>
+            <div className="relative bg-white border border-[var(--border)] rounded-2xl p-2 flex items-center shadow-xl transition-colors duration-300 focus-within:border-[var(--accent-gold)]">
+              <div className="pl-4 text-[var(--text-secondary)]">
+                <Search className="w-5 h-5" />
+              </div>
+              <input 
+                type="text" 
+                placeholder="Enter Tracking ID (e.g., JX-82910)" 
+                className="w-full bg-transparent border-none text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:ring-0 px-4 py-3 text-base font-medium outline-none"
+              />
+              <Link href="/tracking">
+                <Button size="lg" icon={<ArrowRight className="w-4 h-4" />} iconPosition="end">
+                  Track
+                </Button>
+              </Link>
             </div>
-            <input 
-              type="text" 
-              placeholder="Enter Tracking ID (e.g., JX-82910)" 
-              className="w-full bg-transparent border-none text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:ring-0 px-4 py-3 text-base font-medium outline-none"
-            />
-            <Link href="/tracking">
-              <Button size="lg" icon={<ArrowRight className="w-4 h-4" />} iconPosition="end">
-                Track
-              </Button>
-            </Link>
           </div>
-        </motion.div>
+        </Zoom>
 
         {/* Floating Stats - Using Dashboard Components Styled */}
-        <motion.div 
-          style={{ y: y1 }}
-          className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-6 w-full max-w-6xl mx-auto"
-        >
+        <div className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-6 w-full max-w-6xl mx-auto">
           {[
             { label: "Active Countries", value: "45+", icon: Globe, variant: "default" },
             { label: "Shipments/Year", value: "12k+", icon: Package, variant: "info" },
             { label: "On-Time Delivery", value: "99.8%", icon: CheckCircle, variant: "success" },
             { label: "Client Satisfaction", value: "4.9/5", icon: Star, variant: "warning" },
           ].map((stat, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 + i * 0.1 }}
+            <Slide 
+              key={i} 
+              in={mounted} 
+              direction="up" 
+              timeout={600}
+              style={{ transitionDelay: `${500 + i * 100}ms` }}
             >
-              <StatsCard
-                title={stat.label}
-                value={stat.value}
-                icon={<stat.icon className="w-5 h-5" />}
-                variant={stat.variant as any}
-                size="sm"
-              />
-            </motion.div>
+              <div>
+                <StatsCard
+                  title={stat.label}
+                  value={stat.value}
+                  icon={<stat.icon className="w-5 h-5" />}
+                  variant={stat.variant as any}
+                  size="sm"
+                />
+              </div>
+            </Slide>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );
 }
 
 function FeatureCard({ feature, index }: { feature: any, index: number }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const { ref, isInView } = useInView({ threshold: 0.1, once: true });
 
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-      transition={{ duration: 0.6, delay: index * 0.1 }}
-      className="group relative p-8 rounded-3xl bg-white border border-[var(--border)] hover:border-[var(--accent-gold)] transition-all duration-500 hover:shadow-xl hover:shadow-[rgba(var(--accent-gold-rgb),0.1)]"
-    >
-      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 bg-[var(--panel)] border border-[var(--border)] group-hover:bg-[var(--accent-gold)] group-hover:text-white transition-colors duration-300 text-[var(--text-primary)]`}>
-        <feature.icon className="w-7 h-7" />
-      </div>
-      <h3 className="text-xl font-bold text-[var(--text-primary)] mb-3">{feature.title}</h3>
-      <p className="text-[var(--text-secondary)] leading-relaxed font-light">{feature.description}</p>
-    </motion.div>
+    <div ref={ref}>
+      <Slide in={isInView} direction="up" timeout={600} style={{ transitionDelay: `${index * 100}ms` }}>
+        <div className="group relative p-8 rounded-3xl bg-white border border-[var(--border)] hover:border-[var(--accent-gold)] transition-all duration-500 hover:shadow-xl hover:shadow-[rgba(var(--accent-gold-rgb),0.1)]">
+          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 bg-[var(--panel)] border border-[var(--border)] group-hover:bg-[var(--accent-gold)] group-hover:text-white transition-colors duration-300 text-[var(--text-primary)]`}>
+            <feature.icon className="w-7 h-7" />
+          </div>
+          <h3 className="text-xl font-bold text-[var(--text-primary)] mb-3">{feature.title}</h3>
+          <p className="text-[var(--text-secondary)] leading-relaxed font-light">{feature.description}</p>
+        </div>
+      </Slide>
+    </div>
   );
 }
 
@@ -191,32 +189,32 @@ function Features() {
 }
 
 function ServiceCard({ title, desc, icon: Icon, index }: { title: string, desc: string, icon: any, index: number }) {
+  const { ref, isInView } = useInView({ threshold: 0.1, once: true });
+
   return (
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.95 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.1, duration: 0.5 }}
-      className="group relative h-[450px] rounded-3xl overflow-hidden cursor-pointer border border-[var(--border)] bg-white shadow-sm hover:shadow-xl transition-all duration-300"
-    >
-      <div className="absolute inset-0 bg-gradient-to-br from-white to-[var(--panel)] opacity-50" />
-      
-      <div className="absolute inset-0 flex flex-col p-8 z-10">
-        <div className="flex-1">
-          <div className="w-16 h-16 rounded-full bg-[var(--panel)] border border-[var(--border)] flex items-center justify-center mb-8 group-hover:bg-[var(--accent-gold)] group-hover:text-white transition-colors duration-300">
-            <Icon className="w-8 h-8 text-[var(--text-primary)] group-hover:text-white transition-colors duration-300" />
+    <div ref={ref}>
+      <Grow in={isInView} timeout={800} style={{ transitionDelay: `${index * 150}ms` }}>
+        <div className="group relative h-[450px] rounded-3xl overflow-hidden cursor-pointer border border-[var(--border)] bg-white shadow-sm hover:shadow-xl transition-all duration-300">
+          <div className="absolute inset-0 bg-gradient-to-br from-white to-[var(--panel)] opacity-50" />
+          
+          <div className="absolute inset-0 flex flex-col p-8 z-10">
+            <div className="flex-1">
+              <div className="w-16 h-16 rounded-full bg-[var(--panel)] border border-[var(--border)] flex items-center justify-center mb-8 group-hover:bg-[var(--accent-gold)] group-hover:text-white transition-colors duration-300">
+                <Icon className="w-8 h-8 text-[var(--text-primary)] group-hover:text-white transition-colors duration-300" />
+              </div>
+              <h3 className="text-3xl font-bold text-[var(--text-primary)] mb-4 leading-tight">{title}</h3>
+              <p className="text-[var(--text-secondary)] font-light leading-relaxed">
+                {desc}
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-2 text-[var(--accent-gold)] font-bold text-sm tracking-wider uppercase transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+              Explore Service <ArrowRight className="w-4 h-4" />
+            </div>
           </div>
-          <h3 className="text-3xl font-bold text-[var(--text-primary)] mb-4 leading-tight">{title}</h3>
-          <p className="text-[var(--text-secondary)] font-light leading-relaxed">
-            {desc}
-          </p>
         </div>
-        
-        <div className="flex items-center gap-2 text-[var(--accent-gold)] font-bold text-sm tracking-wider uppercase transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-          Explore Service <ArrowRight className="w-4 h-4" />
-        </div>
-      </div>
-    </motion.div>
+      </Grow>
+    </div>
   );
 }
 
@@ -261,38 +259,48 @@ function ServicesPreview() {
 }
 
 function Testimonial() {
+  const { ref, isInView } = useInView({ threshold: 0.5, once: true });
+
   return (
-    <section className="py-32 bg-[var(--panel)] flex items-center justify-center border-y border-[var(--border)]">
-      <div className="container mx-auto px-4 max-w-5xl text-center">
-        <div className="mb-10 flex justify-center gap-2">
-          {[1,2,3,4,5].map(i => <Star key={i} className="w-6 h-6 text-[var(--accent-gold)] fill-[var(--accent-gold)]" />)}
-        </div>
-        <h2 className="text-3xl md:text-5xl font-serif text-[var(--text-primary)] mb-12 leading-tight">
-          "The level of precision and care JACXI brings to logistics is unmatched. They handled our fleet shipment with absolute professionalism."
-        </h2>
-        <div className="flex flex-col items-center">
-          <div className="w-16 h-16 bg-white rounded-full mb-4 border-2 border-[var(--border)] overflow-hidden shadow-md flex items-center justify-center">
-             <span className="text-xl font-bold text-[var(--text-secondary)]">SJ</span>
+    <section ref={ref} className="py-32 bg-[var(--panel)] flex items-center justify-center border-y border-[var(--border)]">
+      <Fade in={isInView} timeout={1000}>
+        <div className="container mx-auto px-4 max-w-5xl text-center">
+          <div className="mb-10 flex justify-center gap-2">
+            {[1,2,3,4,5].map(i => <Star key={i} className="w-6 h-6 text-[var(--accent-gold)] fill-[var(--accent-gold)]" />)}
           </div>
-          <p className="text-xl font-bold text-[var(--text-primary)]">Sarah Jenkins</p>
-          <p className="text-[var(--text-secondary)] font-medium">Director of Operations, AutoMotive Global</p>
+          <h2 className="text-3xl md:text-5xl font-serif text-[var(--text-primary)] mb-12 leading-tight">
+            "The level of precision and care JACXI brings to logistics is unmatched. They handled our fleet shipment with absolute professionalism."
+          </h2>
+          <div className="flex flex-col items-center">
+            <div className="w-16 h-16 bg-white rounded-full mb-4 border-2 border-[var(--border)] overflow-hidden shadow-md flex items-center justify-center">
+               <span className="text-xl font-bold text-[var(--text-secondary)]">SJ</span>
+            </div>
+            <p className="text-xl font-bold text-[var(--text-primary)]">Sarah Jenkins</p>
+            <p className="text-[var(--text-secondary)] font-medium">Director of Operations, AutoMotive Global</p>
+          </div>
         </div>
-      </div>
+      </Fade>
     </section>
   );
 }
 
 function CTA() {
+  const { ref, isInView } = useInView({ threshold: 0.3, once: true });
+
   return (
-    <section className="py-32 relative overflow-hidden bg-white">
+    <section ref={ref} className="py-32 relative overflow-hidden bg-white">
       {/* Dynamic Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-white to-[var(--panel)]" />
       
       <div className="container mx-auto px-4 relative z-10 flex flex-col items-center text-center">
-        <h2 className="text-5xl md:text-7xl font-bold text-[var(--text-primary)] mb-8 tracking-tight">Ready to ship?</h2>
-        <p className="text-xl text-[var(--text-secondary)] font-light max-w-2xl mb-12">
-          Get a competitive quote in minutes and start your journey with the world's most reliable logistics partner.
-        </p>
+        <Zoom in={isInView} timeout={800}>
+          <h2 className="text-5xl md:text-7xl font-bold text-[var(--text-primary)] mb-8 tracking-tight">Ready to ship?</h2>
+        </Zoom>
+        <Fade in={isInView} timeout={1000} style={{ transitionDelay: '300ms' }}>
+          <p className="text-xl text-[var(--text-secondary)] font-light max-w-2xl mb-12">
+            Get a competitive quote in minutes and start your journey with the world's most reliable logistics partner.
+          </p>
+        </Fade>
         
         <div className="flex flex-col sm:flex-row gap-6 w-full justify-center">
           <Link href="/auth/signin">
