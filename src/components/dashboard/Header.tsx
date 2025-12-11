@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import {
 	AppBar,
 	Toolbar,
@@ -12,16 +13,19 @@ import {
 	Menu,
 	MenuItem,
 	Divider,
-	Badge,
 	Tooltip,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
 import {
-	Notifications,
 	Settings,
 	Logout,
 	Person,
 	Menu as MenuIcon,
+  Add as AddIcon,
+  Keyboard as KeyboardIcon,
 } from '@mui/icons-material';
+import { Ship, Package, FileText } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/design-system';
@@ -32,9 +36,32 @@ interface HeaderProps {
 	pageTitle?: string;
 }
 
+const quickActions = [
+  {
+    icon: <Ship style={{ width: 20, height: 20 }} />,
+    label: 'New Shipment',
+    href: '/dashboard/shipments/new',
+    color: '#3B82F6',
+  },
+  {
+    icon: <Package style={{ width: 20, height: 20 }} />,
+    label: 'New Container',
+    href: '/dashboard/containers/new',
+    color: '#10B981',
+  },
+  {
+    icon: <FileText style={{ width: 20, height: 20 }} />,
+    label: 'New Invoice',
+    href: '/dashboard/invoices/new',
+    color: '#F59E0B',
+  },
+];
+
 export default function Header({ onMenuClick, pageTitle }: HeaderProps) {
 	const { data: session } = useSession();
+  const router = useRouter();
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [quickActionEl, setQuickActionEl] = useState<null | HTMLElement>(null);
 
 	const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
 		setAnchorEl(event.currentTarget);
@@ -43,11 +70,28 @@ export default function Header({ onMenuClick, pageTitle }: HeaderProps) {
 	const handleMenuClose = () => {
 		setAnchorEl(null);
 	};
+  
+  const handleQuickActionOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setQuickActionEl(event.currentTarget);
+  };
+
+  const handleQuickActionClose = () => {
+    setQuickActionEl(null);
+  };
+
+  const handleQuickActionClick = (href: string) => {
+    handleQuickActionClose();
+    router.push(href);
+  };
 
 	const handleSignOut = async () => {
 		handleMenuClose();
 		await signOut({ callbackUrl: '/' });
 	};
+
+  const toggleKeyboardShortcuts = () => {
+    window.dispatchEvent(new CustomEvent('toggle-shortcut-help'));
+  };
 
 	return (
 		<AppBar
@@ -142,6 +186,41 @@ export default function Header({ onMenuClick, pageTitle }: HeaderProps) {
 
 				{/* Right Actions */}
 				<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          {/* Quick Actions (FAB) */}
+          <Tooltip title="Quick Actions">
+            <IconButton
+              onClick={handleQuickActionOpen}
+              sx={{
+                color: 'var(--accent-gold)',
+                p: 1,
+                mr: 0.5,
+                '&:hover': {
+                  bgcolor: 'rgba(var(--accent-gold-rgb), 0.1)',
+                },
+              }}
+            >
+              <AddIcon sx={{ fontSize: 22 }} />
+            </IconButton>
+          </Tooltip>
+
+          {/* Keyboard Shortcuts */}
+          <Tooltip title="Keyboard Shortcuts (?)">
+            <IconButton
+              onClick={toggleKeyboardShortcuts}
+              sx={{
+                color: 'var(--text-secondary)',
+                p: 1,
+                display: { xs: 'none', md: 'inline-flex' },
+                '&:hover': {
+                  bgcolor: 'rgba(var(--border-rgb), 0.4)',
+                  color: 'var(--text-primary)',
+                },
+              }}
+            >
+              <KeyboardIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </Tooltip>
+
 					{/* Theme Toggle */}
 					<ThemeToggle />
 					
@@ -298,6 +377,53 @@ export default function Header({ onMenuClick, pageTitle }: HeaderProps) {
 						Sign Out
 					</MenuItem>
 				</Menu>
+        
+        {/* Quick Actions Menu */}
+        <Menu
+          anchorEl={quickActionEl}
+          open={Boolean(quickActionEl)}
+          onClose={handleQuickActionClose}
+          PaperProps={{
+            sx: {
+              mt: 1.5,
+              minWidth: 200,
+              bgcolor: 'var(--panel)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid var(--border)',
+              borderRadius: 2,
+              boxShadow: '0 8px 32px rgba(var(--text-primary-rgb),0.12)',
+            }
+          }}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        >
+          <Box sx={{ px: 2, py: 1.5, pb: 1 }}>
+            <Typography variant="subtitle2" color="text.secondary" fontWeight={600} textTransform="uppercase" fontSize="0.7rem">
+              Create New
+            </Typography>
+          </Box>
+          {quickActions.map((action) => (
+            <MenuItem
+              key={action.label}
+              onClick={() => handleQuickActionClick(action.href)}
+              sx={{
+                py: 1.5,
+                color: 'var(--text-primary)',
+                '&:hover': {
+                  bgcolor: 'rgba(var(--border-rgb), 0.4)',
+                }
+              }}
+            >
+              <ListItemIcon sx={{ color: action.color, minWidth: 36 }}>
+                {action.icon}
+              </ListItemIcon>
+              <ListItemText 
+                primary={action.label} 
+                primaryTypographyProps={{ fontSize: '0.875rem', fontWeight: 500 }}
+              />
+            </MenuItem>
+          ))}
+        </Menu>
 			</Toolbar>
 		</AppBar>
 	);

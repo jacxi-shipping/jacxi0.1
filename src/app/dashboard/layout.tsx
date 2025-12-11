@@ -6,7 +6,6 @@ import Sidebar from '@/components/dashboard/Sidebar';
 import Header from '@/components/dashboard/Header';
 import { BottomNavigation } from '@/components/mobile/BottomNavigation';
 import { KeyboardShortcutHelp } from '@/components/design-system';
-import { FloatingActionButton } from '@/components/ui/FloatingActionButton';
 import { Box } from '@mui/material';
 
 import { CommandPaletteProvider } from '@/components/providers/CommandPaletteProvider';
@@ -72,9 +71,6 @@ export default function DashboardLayout({
 				{/* Mobile Bottom Navigation */}
 				<BottomNavigation />
 
-				{/* Floating Action Button */}
-				<FloatingActionButton />
-
 				{/* Keyboard Shortcuts Help - Press ? key */}
 				<KeyboardShortcutHelp />
 			</Box>
@@ -82,4 +78,3 @@ export default function DashboardLayout({
 		</ProtectedRoute>
 	);
 }
-

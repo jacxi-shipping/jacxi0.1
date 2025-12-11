@@ -1,6 +1,7 @@
 "use client";
 
-import { Box, CircularProgress, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
+import { CompactSkeleton } from './PageSkeletons';
 
 interface LoadingStateProps {
 	message?: string;
@@ -8,29 +9,43 @@ interface LoadingStateProps {
 }
 
 export default function LoadingState({ message = 'Loading...', fullScreen = false }: LoadingStateProps) {
+	if (fullScreen) {
+		return (
+			<Box sx={{ minHeight: '100vh', width: '100%', bgcolor: 'var(--background)' }}>
+				{/* We use CompactSkeleton but centered or replicated to mimic full screen load if needed, 
+            or ideally Import DashboardPageSkeleton but that might cause circular deps if not careful.
+            Since PageSkeletons exports multiple, let's just use a simple Box structure here or generic skeleton.
+            Actually, let's just use CompactSkeleton for now as a generic replacement for the spinner.
+         */}
+				<Box sx={{ p: 4, maxWidth: 800, mx: 'auto', pt: 10 }}>
+          <CompactSkeleton />
+          <Box sx={{ mt: 4 }}>
+            <CompactSkeleton />
+          </Box>
+        </Box>
+			</Box>
+		);
+	}
+
 	return (
 		<Box
 			sx={{
-				minHeight: fullScreen ? '100vh' : 240,
+				width: '100%',
+				minHeight: 200,
 				display: 'flex',
 				flexDirection: 'column',
 				alignItems: 'center',
 				justifyContent: 'center',
-				gap: 2,
-				bgcolor: fullScreen ? 'var(--background)' : 'transparent',
 			}}
 		>
-			<CircularProgress size={fullScreen ? 48 : 32} sx={{ color: 'var(--accent-gold)' }} />
-			{message && (
-				<Typography
-					sx={{
-						fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
-						color: 'var(--text-secondary)',
-					}}
-				>
-					{message}
-				</Typography>
-			)}
+			<Box sx={{ width: '100%', maxWidth: 400 }}>
+        <CompactSkeleton />
+      </Box>
+      {message && message !== 'Loading...' && (
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 2 }}>
+          {message}
+        </Typography>
+      )}
 		</Box>
 	);
 }
