@@ -33,6 +33,33 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         phone: true,
         createdAt: true,
         updatedAt: true,
+        shipments: {
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            vehicleType: true,
+            vehicleMake: true,
+            vehicleModel: true,
+            vehicleYear: true,
+            vehicleVIN: true,
+            status: true,
+            createdAt: true,
+            containerId: true,
+            price: true,
+            vehiclePhotos: true,
+            container: {
+              select: {
+                containerNumber: true,
+                status: true,
+                currentLocation: true,
+                estimatedArrival: true,
+                vesselName: true,
+                shippingLine: true,
+                progress: true
+              }
+            }
+          }
+        }
       },
     });
 
@@ -43,6 +70,58 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ user });
   } catch (error) {
     console.error('Error fetching user:', error);
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const session = await auth();
+    if (!session) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = await params;
+    const userId = id;
+
+    if (!userId) {
+      return NextResponse.json({ message: 'User ID required' }, { status: 400 });
+    }
+
+    // Only admins can update other users (except maybe self-update, but usually user settings are separate)
+    if (session.user?.role !== 'admin' && session.user?.id !== userId) {
+      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const { name, email, role, phone } = body;
+
+    // Validate email if changed (check uniqueness)
+    if (email) {
+      const existingUser = await prisma.user.findUnique({ where: { email } });
+      if (existingUser && existingUser.id !== userId) {
+        return NextResponse.json({ message: 'Email already in use' }, { status: 400 });
+      }
+    }
+
+    // Only admins can change roles
+    if (role && session.user.role !== 'admin') {
+      return NextResponse.json({ message: 'Forbidden: Cannot change role' }, { status: 403 });
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        name,
+        email,
+        role, // only if provided
+        phone,
+      },
+    });
+
+    return NextResponse.json({ user: updatedUser });
+  } catch (error) {
+    console.error('Error updating user:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }
