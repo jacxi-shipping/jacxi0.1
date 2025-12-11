@@ -53,6 +53,9 @@ export async function GET(request: NextRequest) {
         email: true,
         role: true,
         createdAt: true,
+        _count: {
+          select: { shipments: true }
+        }
       },
       orderBy: {
         createdAt: 'desc',
@@ -68,4 +71,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
