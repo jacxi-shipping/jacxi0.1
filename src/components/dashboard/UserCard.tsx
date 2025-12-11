@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { User, Eye, EyeOff, Copy, Check } from 'lucide-react';
+import { User, Eye, EyeOff, Copy, Check, Package } from 'lucide-react';
 import { Box, Typography, IconButton, Slide } from '@mui/material';
 import { Button } from '@/components/design-system';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -13,6 +13,9 @@ interface UserData {
   email: string;
   role: string;
   createdAt?: string;
+  _count?: {
+    shipments: number;
+  };
 }
 
 interface UserCardProps {
@@ -137,11 +140,14 @@ export default function UserCard({
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
           <Typography variant="caption" color="text.secondary" sx={{ minWidth: 90 }}>
-            Password
+            Shipments
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            ••••••••••
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Package style={{ width: 14, height: 14, color: 'var(--text-secondary)' }} />
+            <Typography variant="body2" color="text.primary" fontWeight="600">
+              {user._count?.shipments ?? 0}
+            </Typography>
+          </Box>
         </Box>
 
         {user.createdAt && (
@@ -187,4 +193,3 @@ export default function UserCard({
     </Slide>
   );
 }
-

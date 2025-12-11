@@ -198,9 +198,44 @@ export default function AnalyticsPage() {
     return <LoadingState fullScreen message="Loading analytics..." />;
   }
 
-  if (!session || !isAdmin || !data) {
+  if (!session || !isAdmin) {
     return null;
   }
+
+  // Handle error state gracefully, showing error message even if data is null
+  if (error && !data) {
+    return (
+      <DashboardSurface>
+        <Box sx={{ px: 2, pt: 2 }}>
+          <Breadcrumbs />
+        </Box>
+        <Box
+          sx={{
+            mx: 2,
+            my: 4,
+            borderRadius: 2,
+            border: '1px solid var(--error)',
+            background: 'rgba(var(--error-rgb), 0.08)',
+            p: 4,
+            color: 'var(--error)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 2,
+          }}
+        >
+          <AlertTriangle size={48} />
+          <Typography variant="h6" fontWeight={600}>Failed to load analytics</Typography>
+          <Typography>{error}</Typography>
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </Box>
+      </DashboardSurface>
+    );
+  }
+
+  if (!data) return null;
 
   const headerMeta = [
     { label: 'Shipments', value: data.summary.totalShipments },

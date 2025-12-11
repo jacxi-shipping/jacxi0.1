@@ -20,6 +20,9 @@ interface UserData {
 	email: string;
 	role: string;
 	createdAt?: string;
+	_count?: {
+		shipments: number;
+	};
 }
 
 export default function UsersPage() {
@@ -387,4 +390,3 @@ export default function UsersPage() {
 		</DashboardSurface>
 	);
 }
-
