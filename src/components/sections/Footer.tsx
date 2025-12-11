@@ -62,15 +62,15 @@ export default function Footer() {
             <ul className="space-y-6">
               <li className="flex items-start gap-4">
                 <MapPin className="w-6 h-6 text-[var(--accent-gold)] shrink-0" />
-                <span className="text-[var(--text-secondary)]">123 Logistics Blvd, Global Trade Center, Dubai, UAE</span>
+                <span className="text-[var(--text-secondary)]">Across to the Herat Customs Department, Herat, Afghanistan</span>
               </li>
               <li className="flex items-center gap-4">
                 <Phone className="w-5 h-5 text-[var(--accent-gold)] shrink-0" />
-                <span className="text-[var(--text-secondary)]">+971 4 123 4567</span>
+                <span className="text-[var(--text-secondary)]">+93 77 000 0085</span>
               </li>
               <li className="flex items-center gap-4">
                 <Mail className="w-5 h-5 text-[var(--accent-gold)] shrink-0" />
-                <span className="text-[var(--text-secondary)]">contact@jacxi.com</span>
+                <span className="text-[var(--text-secondary)]">info@jacxi.com</span>
               </li>
             </ul>
           </div>
