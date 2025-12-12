@@ -7,6 +7,11 @@ import { motion } from 'framer-motion';
 import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
+import PhoneIcon from '@mui/icons-material/Phone';
+import HomeIcon from '@mui/icons-material/Home';
+import LocationCityIcon from '@mui/icons-material/LocationCity';
+import PublicIcon from '@mui/icons-material/Public';
+import BadgeIcon from '@mui/icons-material/Badge';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import ArrowForward from '@mui/icons-material/ArrowForward';
@@ -22,6 +27,7 @@ import {
 	Alert,
 	Snackbar,
 	Button as MuiButton,
+  MenuItem,
 } from '@mui/material';
 import { Breadcrumbs, Button, toast, EmptyState, SkeletonCard, SkeletonTable, Tooltip, StatusBadge, FormPageSkeleton } from '@/components/design-system';
 import { DashboardSurface, DashboardPanel } from '@/components/dashboard/DashboardSurface';
@@ -34,6 +40,11 @@ export default function CreateUserPage() {
 		email: '',
 		password: '',
 		confirmPassword: '',
+		role: 'user',
+		phone: '',
+		address: '',
+		city: '',
+		country: '',
 	});
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -87,7 +98,16 @@ export default function CreateUserPage() {
 			const response = await fetch('/api/auth/register', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ name: formData.name, email: formData.email, password: formData.password }),
+				body: JSON.stringify({
+					name: formData.name,
+					email: formData.email,
+					password: formData.password,
+					role: formData.role,
+					phone: formData.phone,
+					address: formData.address,
+					city: formData.city,
+					country: formData.country,
+				}),
 			});
 
 			const data = await response.json().catch(() => ({}));
@@ -259,6 +279,220 @@ export default function CreateUserPage() {
 										startAdornment: (
 											<InputAdornment position="start">
 												<EmailIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
+											</InputAdornment>
+										),
+									}}
+									sx={{
+										'& .MuiOutlinedInput-root': {
+											bgcolor: 'var(--background)',
+											borderRadius: 2,
+											color: 'var(--text-primary)',
+										},
+									}}
+								/>
+							</Box>
+
+							{/* Role */}
+							<Box sx={{ gridColumn: { xs: '1 / -1', sm: '1 / 2' } }}>
+								<Typography
+									component="label"
+									htmlFor="role"
+									sx={{
+										display: 'block',
+										fontSize: '0.875rem',
+										fontWeight: 500,
+										color: 'var(--text-primary)',
+										mb: 1,
+									}}
+								>
+									Role
+								</Typography>
+								<TextField
+									id="role"
+									name="role"
+									select
+									fullWidth
+									value={formData.role}
+									onChange={handleChange}
+									required
+									disabled={isLoading}
+									InputProps={{
+										startAdornment: (
+											<InputAdornment position="start">
+												<BadgeIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
+											</InputAdornment>
+										),
+									}}
+									sx={{
+										'& .MuiOutlinedInput-root': {
+											bgcolor: 'var(--background)',
+											borderRadius: 2,
+											color: 'var(--text-primary)',
+										},
+									}}
+								>
+									<MenuItem value="user">User</MenuItem>
+									<MenuItem value="admin">Admin</MenuItem>
+									<MenuItem value="manager">Manager</MenuItem>
+									<MenuItem value="customer_service">Customer Service</MenuItem>
+								</TextField>
+							</Box>
+
+							{/* Phone */}
+							<Box sx={{ gridColumn: { xs: '1 / -1', sm: '2 / 3' } }}>
+								<Typography
+									component="label"
+									htmlFor="phone"
+									sx={{
+										display: 'block',
+										fontSize: '0.875rem',
+										fontWeight: 500,
+										color: 'var(--text-primary)',
+										mb: 1,
+									}}
+								>
+									Phone
+								</Typography>
+								<TextField
+									id="phone"
+									name="phone"
+									type="tel"
+									fullWidth
+									value={formData.phone}
+									onChange={handleChange}
+									disabled={isLoading}
+									placeholder="Enter phone number"
+									autoComplete="tel"
+									InputProps={{
+										startAdornment: (
+											<InputAdornment position="start">
+												<PhoneIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
+											</InputAdornment>
+										),
+									}}
+									sx={{
+										'& .MuiOutlinedInput-root': {
+											bgcolor: 'var(--background)',
+											borderRadius: 2,
+											color: 'var(--text-primary)',
+										},
+									}}
+								/>
+							</Box>
+
+							{/* Address */}
+							<Box sx={{ gridColumn: '1 / -1' }}>
+								<Typography
+									component="label"
+									htmlFor="address"
+									sx={{
+										display: 'block',
+										fontSize: '0.875rem',
+										fontWeight: 500,
+										color: 'var(--text-primary)',
+										mb: 1,
+									}}
+								>
+									Address
+								</Typography>
+								<TextField
+									id="address"
+									name="address"
+									type="text"
+									fullWidth
+									value={formData.address}
+									onChange={handleChange}
+									disabled={isLoading}
+									placeholder="Enter address"
+									autoComplete="street-address"
+									InputProps={{
+										startAdornment: (
+											<InputAdornment position="start">
+												<HomeIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
+											</InputAdornment>
+										),
+									}}
+									sx={{
+										'& .MuiOutlinedInput-root': {
+											bgcolor: 'var(--background)',
+											borderRadius: 2,
+											color: 'var(--text-primary)',
+										},
+									}}
+								/>
+							</Box>
+
+							{/* City */}
+							<Box sx={{ gridColumn: { xs: '1 / -1', sm: '1 / 2' } }}>
+								<Typography
+									component="label"
+									htmlFor="city"
+									sx={{
+										display: 'block',
+										fontSize: '0.875rem',
+										fontWeight: 500,
+										color: 'var(--text-primary)',
+										mb: 1,
+									}}
+								>
+									City
+								</Typography>
+								<TextField
+									id="city"
+									name="city"
+									type="text"
+									fullWidth
+									value={formData.city}
+									onChange={handleChange}
+									disabled={isLoading}
+									placeholder="Enter city"
+									autoComplete="address-level2"
+									InputProps={{
+										startAdornment: (
+											<InputAdornment position="start">
+												<LocationCityIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
+											</InputAdornment>
+										),
+									}}
+									sx={{
+										'& .MuiOutlinedInput-root': {
+											bgcolor: 'var(--background)',
+											borderRadius: 2,
+											color: 'var(--text-primary)',
+										},
+									}}
+								/>
+							</Box>
+
+							{/* Country */}
+							<Box sx={{ gridColumn: { xs: '1 / -1', sm: '2 / 3' } }}>
+								<Typography
+									component="label"
+									htmlFor="country"
+									sx={{
+										display: 'block',
+										fontSize: '0.875rem',
+										fontWeight: 500,
+										color: 'var(--text-primary)',
+										mb: 1,
+									}}
+								>
+									Country
+								</Typography>
+								<TextField
+									id="country"
+									name="country"
+									type="text"
+									fullWidth
+									value={formData.country}
+									onChange={handleChange}
+									disabled={isLoading}
+									placeholder="Enter country"
+									autoComplete="country-name"
+									InputProps={{
+										startAdornment: (
+											<InputAdornment position="start">
+												<PublicIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
 											</InputAdornment>
 										),
 									}}

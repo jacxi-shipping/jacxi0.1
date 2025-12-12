@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, email, password } = await request.json();
+    const { name, email, password, role, phone, address, city, country } = await request.json();
 
     // Validate input
     if (!name || !email || !password) {
@@ -54,7 +54,11 @@ export async function POST(request: NextRequest) {
         name,
         email,
         passwordHash: hashedPassword,
-        role: 'user',
+        role: role || 'user',
+        phone,
+        address,
+        city,
+        country,
       },
     });
 

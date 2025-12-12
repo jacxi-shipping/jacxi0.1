@@ -25,6 +25,9 @@ const userSchema = z.object({
   name: z.string().min(2, 'Name is required'),
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  country: z.string().optional(),
   role: z.enum(['user', 'admin', 'manager', 'customer_service']),
 });
 
@@ -64,6 +67,9 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
             name: data.user.name || '',
             email: data.user.email,
             phone: data.user.phone || '',
+            address: data.user.address || '',
+            city: data.user.city || '',
+            country: data.user.country || '',
             role: data.user.role,
           });
         } else {
@@ -153,6 +159,32 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
             helperText={errors.phone?.message}
             {...register('phone')}
           />
+
+          <FormField
+            label="Address"
+            placeholder="123 Main St"
+            error={!!errors.address}
+            helperText={errors.address?.message}
+            {...register('address')}
+          />
+
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+            <FormField
+              label="City"
+              placeholder="New York"
+              error={!!errors.city}
+              helperText={errors.city?.message}
+              {...register('city')}
+            />
+
+            <FormField
+              label="Country"
+              placeholder="United States"
+              error={!!errors.country}
+              helperText={errors.country?.message}
+              {...register('country')}
+            />
+          </Box>
 
           <Box>
             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Role</Typography>
