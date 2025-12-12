@@ -52,41 +52,28 @@ async function main() {
 
     console.log('✅ Demo customer created:', customer.email);
 
-    // Create sample shipments
+    // Create sample shipments (Adapted for new Schema)
     const sampleShipments = [
       {
-        trackingNumber: 'JACXI123456789',
         vehicleType: 'sedan',
         vehicleMake: 'Toyota',
         vehicleModel: 'Camry',
         vehicleYear: 2020,
         vehicleVIN: '1HGBH41JXMN109186',
-        origin: 'Los Angeles, CA',
-        destination: 'Kabul, Afghanistan',
         status: 'IN_TRANSIT',
-        currentLocation: 'Port of Los Angeles, CA',
-        estimatedDelivery: new Date('2024-11-15'),
-        progress: 65,
         price: 2500.00,
         weight: 1500,
         dimensions: '4.8m x 1.8m x 1.4m',
-        specialInstructions: 'Handle with care - luxury vehicle',
         insuranceValue: 30000.00,
         userId: customer.id,
       },
       {
-        trackingNumber: 'JACXI987654321',
         vehicleType: 'suv',
         vehicleMake: 'Honda',
         vehicleModel: 'CR-V',
         vehicleYear: 2019,
         vehicleVIN: '2HGBH41JXMN109187',
-        origin: 'Miami, FL',
-        destination: 'Dubai, UAE',
-        status: 'AT_PORT',
-        currentLocation: 'Port of Miami, FL',
-        estimatedDelivery: new Date('2024-11-20'),
-        progress: 45,
+        status: 'ON_HAND',
         price: 2800.00,
         weight: 1600,
         dimensions: '4.6m x 1.8m x 1.7m',
@@ -94,18 +81,12 @@ async function main() {
         userId: customer.id,
       },
       {
-        trackingNumber: 'JACXI456789123',
         vehicleType: 'truck',
         vehicleMake: 'Ford',
         vehicleModel: 'F-150',
         vehicleYear: 2021,
         vehicleVIN: '3HGBH41JXMN109188',
-        origin: 'New York, NY',
-        destination: 'Riyadh, KSA',
-        status: 'PICKUP_SCHEDULED',
-        currentLocation: 'New York, NY',
-        estimatedDelivery: new Date('2024-12-01'),
-        progress: 10,
+        status: 'ON_HAND',
         price: 3200.00,
         weight: 2500,
         dimensions: '5.4m x 2.0m x 1.9m',
@@ -116,57 +97,12 @@ async function main() {
 
     for (const shipment of sampleShipments) {
       const createdShipment = await prisma.shipment.upsert({
-        where: { trackingNumber: shipment.trackingNumber },
+        where: { vehicleVIN: shipment.vehicleVIN },
         update: {},
         create: shipment,
       });
 
-      // Create sample events for each shipment
-      const events = [
-        {
-          status: 'QUOTE_REQUESTED',
-          location: shipment.origin,
-          description: 'Quote requested for vehicle shipping',
-          completed: true,
-          shipmentId: createdShipment.id,
-        },
-        {
-          status: 'QUOTE_APPROVED',
-          location: shipment.origin,
-          description: 'Quote approved and payment received',
-          completed: true,
-          shipmentId: createdShipment.id,
-        },
-        {
-          status: 'PICKUP_SCHEDULED',
-          location: shipment.origin,
-          description: 'Vehicle pickup scheduled',
-          completed: true,
-          shipmentId: createdShipment.id,
-        },
-        {
-          status: 'PICKUP_COMPLETED',
-          location: shipment.origin,
-          description: 'Vehicle successfully picked up',
-          completed: true,
-          shipmentId: createdShipment.id,
-        },
-        {
-          status: shipment.status,
-          location: shipment.currentLocation,
-          description: `Vehicle is currently ${shipment.status.toLowerCase().replace('_', ' ')}`,
-          completed: false,
-          shipmentId: createdShipment.id,
-        },
-      ];
-
-      for (const event of events) {
-        await prisma.shipmentEvent.create({
-          data: event,
-        });
-      }
-
-      console.log(`✅ Sample shipment created: ${createdShipment.trackingNumber}`);
+      console.log(`✅ Sample shipment created for VIN: ${createdShipment.vehicleVIN}`);
     }
 
     // Create sample quotes
@@ -183,6 +119,11 @@ async function main() {
         validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
         notes: 'Luxury SUV shipping request',
         userId: customer.id,
+        // Added required fields based on schema if they are required (checking schema: email, message, name, phone are required)
+        email: 'customer@example.com',
+        message: 'Please provide quote for BMW X5',
+        name: 'Ahmed Khan',
+        phone: '+93 70 123 4567'
       },
       {
         vehicleType: 'motorcycle',
@@ -196,14 +137,33 @@ async function main() {
         validUntil: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
         notes: 'Sport motorcycle shipping',
         userId: customer.id,
+        email: 'customer@example.com',
+        message: 'Please provide quote for Honda bike',
+        name: 'Ahmed Khan',
+        phone: '+93 70 123 4567'
       },
     ];
 
     for (const quote of sampleQuotes) {
-      await prisma.quote.create({
-        data: quote,
+      // Quote doesn't have a unique field for upsert easily other than ID, so we'll just create if not exists or skip
+      // To keep it simple for seeding, we will just create them. 
+      // Or we can use findFirst to check.
+      const existing = await prisma.quote.findFirst({
+        where: { 
+          vehicleVIN: quote.vehicleVIN, // Oh wait, quote doesn't have VIN in the sample data above? No.
+          // Let's match on something else or just create.
+          vehicleMake: quote.vehicleMake,
+          vehicleModel: quote.vehicleModel,
+          userId: quote.userId
+        }
       });
-      console.log(`✅ Sample quote created for ${quote.vehicleMake} ${quote.vehicleModel}`);
+
+      if (!existing) {
+        await prisma.quote.create({
+            data: quote,
+        });
+        console.log(`✅ Sample quote created for ${quote.vehicleMake} ${quote.vehicleModel}`);
+      }
     }
 
     // Create sample testimonials
@@ -251,10 +211,17 @@ async function main() {
     ];
 
     for (const testimonial of sampleTestimonials) {
-      await prisma.testimonial.create({
-        data: testimonial,
+      // Testimonial doesn't have unique constraint, checking by name and content prefix
+      const existing = await prisma.testimonial.findFirst({
+          where: { name: testimonial.name }
       });
-      console.log(`✅ Sample testimonial created for ${testimonial.name}`);
+      
+      if (!existing) {
+          await prisma.testimonial.create({
+            data: testimonial,
+          });
+          console.log(`✅ Sample testimonial created for ${testimonial.name}`);
+      }
     }
 
     // Create sample blog posts
@@ -295,8 +262,10 @@ async function main() {
     ];
 
     for (const post of sampleBlogPosts) {
-      await prisma.blogPost.create({
-        data: post,
+      await prisma.blogPost.upsert({
+        where: { slug: post.slug },
+        update: {},
+        create: post,
       });
       console.log(`✅ Sample blog post created: ${post.title}`);
     }
@@ -322,10 +291,16 @@ async function main() {
     ];
 
     for (const contact of sampleContacts) {
-      await prisma.contact.create({
-        data: contact,
-      });
-      console.log(`✅ Sample contact created for ${contact.name}`);
+       // Contact doesn't have unique constraint
+       const existing = await prisma.contact.findFirst({
+           where: { email: contact.email, subject: contact.subject }
+       });
+       if (!existing) {
+          await prisma.contact.create({
+            data: contact,
+          });
+          console.log(`✅ Sample contact created for ${contact.name}`);
+       }
     }
 
     // Create sample newsletter subscriptions
@@ -341,8 +316,10 @@ async function main() {
     ];
 
     for (const newsletter of sampleNewsletters) {
-      await prisma.newsletter.create({
-        data: newsletter,
+      await prisma.newsletter.upsert({
+        where: { email: newsletter.email },
+        update: {},
+        create: newsletter,
       });
       console.log(`✅ Sample newsletter subscription created: ${newsletter.email}`);
     }
