@@ -1,10 +1,23 @@
 import { PrismaClient } from '@prisma/client';
 
-export const prisma = new PrismaClient();
+const prismaClientSingleton = () => {
+  return new PrismaClient();
+};
+
+type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>;
+
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClientSingleton | undefined;
+};
+
+export const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
 // Database utility class with static methods
 export class DB {
-  private static prisma = new PrismaClient();
+  // Use the singleton instance
+  private static prisma = prisma;
 
   // User operations
   static async getUserById(id: string) {
