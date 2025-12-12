@@ -7,7 +7,9 @@ async function main() {
   ]);
 
   const bcrypt = bcryptModule.default ?? bcryptModule;
-  prisma = new PrismaClient();
+  prisma = new PrismaClient({
+    datasourceUrl: process.env.jacxi_DATABASE_URL
+  });
 
   console.log('🌱 Seeding JACXI Shipping database...');
 

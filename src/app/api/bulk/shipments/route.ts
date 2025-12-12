@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient, ShipmentSimpleStatus } from '@prisma/client';
+import { ShipmentSimpleStatus } from '@prisma/client';
 import { auth } from '@/lib/auth';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/db';
 
 // POST: Bulk operations on shipments
 export async function POST(request: NextRequest) {

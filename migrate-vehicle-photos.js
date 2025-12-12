@@ -9,8 +9,11 @@
 const { PrismaClient } = require('@prisma/client');
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config();
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+    datasourceUrl: process.env.jacxi_DATABASE_URL
+});
 
 async function checkColumnExists(columnName) {
   try {

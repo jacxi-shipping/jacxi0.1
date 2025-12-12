@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient, ContainerLifecycleStatus } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { ContainerLifecycleStatus } from '@prisma/client';
+import { prisma } from '@/lib/db';
 
 // Arrival alert status
 enum ArrivalAlertStatus {

@@ -5,7 +5,9 @@ async function backupDatabase() {
     import('node:path'),
   ]);
 
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient({
+    datasourceUrl: process.env.jacxi_DATABASE_URL
+  });
 
   console.log('💾 Starting database backup...');
 
