@@ -14,7 +14,6 @@ import PublicIcon from '@mui/icons-material/Public';
 import BadgeIcon from '@mui/icons-material/Badge';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import ArrowForward from '@mui/icons-material/ArrowForward';
 import Link from 'next/link';
 
 import {
@@ -24,17 +23,20 @@ import {
 	TextField,
 	InputAdornment,
 	IconButton,
-	Alert,
-	Snackbar,
 	Button as MuiButton,
   MenuItem,
+  Stepper,
+  Step,
+  StepLabel,
 } from '@mui/material';
-import { Breadcrumbs, Button, toast, EmptyState, SkeletonCard, SkeletonTable, Tooltip, StatusBadge, FormPageSkeleton } from '@/components/design-system';
-import { DashboardSurface, DashboardPanel } from '@/components/dashboard/DashboardSurface';
+import { toast, FormPageSkeleton } from '@/components/design-system';
+
+const steps = ['Basic Info', 'Contact Details', 'Security'];
 
 export default function CreateUserPage() {
 	const router = useRouter();
 	const { data: session, status } = useSession();
+	const [activeStep, setActiveStep] = useState(0);
 	const [formData, setFormData] = useState({
 		name: '',
 		email: '',
@@ -78,21 +80,39 @@ export default function CreateUserPage() {
 		});
 	};
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
+	const handleNext = () => {
+    // Validation for each step
+    if (activeStep === 0) {
+      if (!formData.name || !formData.email || !formData.role) {
+        toast.error('Please fill in all required fields');
+        return;
+      }
+    } else if (activeStep === 2) {
+      if (!formData.password || !formData.confirmPassword) {
+        toast.error('Please enter and confirm password');
+        return;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        toast.error('Passwords do not match');
+        return;
+      }
+      if (formData.password.length < 6) {
+        toast.error('Password must be at least 6 characters');
+        return;
+      }
+      // Submit form
+      handleSubmit();
+      return;
+    }
+		setActiveStep((prevActiveStep) => prevActiveStep + 1);
+	};
+
+	const handleBack = () => {
+		setActiveStep((prevActiveStep) => prevActiveStep - 1);
+	};
+
+	const handleSubmit = async () => {
 		setIsLoading(true);
-
-		if (formData.password !== formData.confirmPassword) {
-			toast.error('Passwords do not match');
-			setIsLoading(false);
-			return;
-		}
-
-		if (formData.password.length < 6) {
-			toast.error('Password must be at least 6 characters');
-			setIsLoading(false);
-			return;
-		}
 
 		try {
 			const response = await fetch('/api/auth/register', {
@@ -132,12 +152,12 @@ export default function CreateUserPage() {
 			} else {
 				const msg = data?.message || 'Registration failed';
 				toast.error(msg);
+        setIsLoading(false);
 			}
 		} catch (error) {
 			const message = error instanceof Error ? error.message : 'An error occurred. Please try again.';
 			toast.error(message);
-		} finally {
-			setIsLoading(false);
+      setIsLoading(false);
 		}
 	};
 
@@ -157,7 +177,7 @@ export default function CreateUserPage() {
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.6 }}
-				style={{ maxWidth: 640, width: '100%', position: 'relative', zIndex: 10, marginTop: -24 }}
+				style={{ maxWidth: 800, width: '100%', position: 'relative', zIndex: 10, marginTop: -24 }}
 			>
 				<Paper
 					elevation={0}
@@ -173,7 +193,7 @@ export default function CreateUserPage() {
 				>
 					<Box sx={{ position: 'relative', zIndex: 1 }}>
 						{/* Header */}
-						<Box sx={{ textAlign: 'center', mb: 3 }}>
+						<Box sx={{ textAlign: 'center', mb: 4 }}>
 							<Typography
 								variant="h3"
 								sx={{
@@ -195,479 +215,180 @@ export default function CreateUserPage() {
 							</Typography>
 						</Box>
 
-						{/* Form - responsive two-column */}
-						<Box
-							component="form"
-							onSubmit={handleSubmit}
-							sx={{
-								display: 'grid',
-								gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-								gap: 2.5,
-								alignItems: 'start',
-							}}
-						>
-							{/* Name */}
-							<Box sx={{ gridColumn: { xs: '1 / -1', sm: '1 / 2' } }}>
-								<Typography
-									component="label"
-									htmlFor="name"
-									sx={{
-										display: 'block',
-										fontSize: '0.875rem',
-										fontWeight: 500,
-										color: 'var(--text-primary)',
-										mb: 1,
-									}}
-								>
-									Full Name
-								</Typography>
-								<TextField
-									id="name"
-									name="name"
-									type="text"
-									fullWidth
-									value={formData.name}
-									onChange={handleChange}
-									required
-									disabled={isLoading}
-									placeholder="Enter full name"
-									autoComplete="name"
-									InputProps={{
-										startAdornment: (
-											<InputAdornment position="start">
-												<PersonIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
-											</InputAdornment>
-										),
-									}}
-									sx={{
-										'& .MuiOutlinedInput-root': {
-											bgcolor: 'var(--background)',
-											borderRadius: 2,
-											color: 'var(--text-primary)',
-										},
-									}}
-								/>
-							</Box>
+            <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
+              {steps.map((label) => (
+                <Step key={label}>
+                  <StepLabel
+                    sx={{
+                      '& .MuiStepLabel-label': { color: 'var(--text-secondary)' },
+                      '& .MuiStepLabel-label.Mui-active': { color: 'var(--accent-gold)', fontWeight: 600 },
+                      '& .MuiStepLabel-label.Mui-completed': { color: 'var(--accent-gold)' },
+                      '& .MuiStepIcon-root': { color: 'var(--border)' },
+                      '& .MuiStepIcon-root.Mui-active': { color: 'var(--accent-gold)' },
+                      '& .MuiStepIcon-root.Mui-completed': { color: 'var(--accent-gold)' },
+                    }}
+                  >
+                    {label}
+                  </StepLabel>
+                </Step>
+              ))}
+            </Stepper>
 
-							{/* Email */}
-							<Box sx={{ gridColumn: { xs: '1 / -1', sm: '2 / 3' } }}>
-								<Typography
-									component="label"
-									htmlFor="email"
-									sx={{
-										display: 'block',
-										fontSize: '0.875rem',
-										fontWeight: 500,
-										color: 'var(--text-primary)',
-										mb: 1,
-									}}
-								>
-									Email
-								</Typography>
-								<TextField
-									id="email"
-									name="email"
-									type="email"
-									fullWidth
-									value={formData.email}
-									onChange={handleChange}
-									required
-									disabled={isLoading}
-									placeholder="Enter email address"
-									autoComplete="email"
-									InputProps={{
-										startAdornment: (
-											<InputAdornment position="start">
-												<EmailIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
-											</InputAdornment>
-										),
-									}}
-									sx={{
-										'& .MuiOutlinedInput-root': {
-											bgcolor: 'var(--background)',
-											borderRadius: 2,
-											color: 'var(--text-primary)',
-										},
-									}}
-								/>
-							</Box>
+						{/* Form Content */}
+						<Box sx={{ mt: 2, minHeight: 300 }}>
+              {activeStep === 0 && (
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2.5 }}>
+                  {/* Name */}
+                  <Box sx={{ gridColumn: '1 / -1' }}>
+                    <Typography component="label" htmlFor="name" sx={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)', mb: 1 }}>Full Name</Typography>
+                    <TextField
+                      id="name" name="name" type="text" fullWidth value={formData.name} onChange={handleChange} required
+                      placeholder="Enter full name"
+                      InputProps={{ startAdornment: (<InputAdornment position="start"><PersonIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} /></InputAdornment>) }}
+                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'var(--background)', borderRadius: 2, color: 'var(--text-primary)' } }}
+                    />
+                  </Box>
+                  {/* Email */}
+                  <Box sx={{ gridColumn: '1 / -1' }}>
+                    <Typography component="label" htmlFor="email" sx={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)', mb: 1 }}>Email</Typography>
+                    <TextField
+                      id="email" name="email" type="email" fullWidth value={formData.email} onChange={handleChange} required
+                      placeholder="Enter email address"
+                      InputProps={{ startAdornment: (<InputAdornment position="start"><EmailIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} /></InputAdornment>) }}
+                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'var(--background)', borderRadius: 2, color: 'var(--text-primary)' } }}
+                    />
+                  </Box>
+                  {/* Role */}
+                  <Box sx={{ gridColumn: '1 / -1' }}>
+                    <Typography component="label" htmlFor="role" sx={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)', mb: 1 }}>Role</Typography>
+                    <TextField
+                      id="role" name="role" select fullWidth value={formData.role} onChange={handleChange} required
+                      InputProps={{ startAdornment: (<InputAdornment position="start"><BadgeIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} /></InputAdornment>) }}
+                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'var(--background)', borderRadius: 2, color: 'var(--text-primary)' } }}
+                    >
+                      <MenuItem value="user">User</MenuItem>
+                      <MenuItem value="admin">Admin</MenuItem>
+                      <MenuItem value="manager">Manager</MenuItem>
+                      <MenuItem value="customer_service">Customer Service</MenuItem>
+                    </TextField>
+                  </Box>
+                </Box>
+              )}
 
-							{/* Role */}
-							<Box sx={{ gridColumn: { xs: '1 / -1', sm: '1 / 2' } }}>
-								<Typography
-									component="label"
-									htmlFor="role"
-									sx={{
-										display: 'block',
-										fontSize: '0.875rem',
-										fontWeight: 500,
-										color: 'var(--text-primary)',
-										mb: 1,
-									}}
-								>
-									Role
-								</Typography>
-								<TextField
-									id="role"
-									name="role"
-									select
-									fullWidth
-									value={formData.role}
-									onChange={handleChange}
-									required
-									disabled={isLoading}
-									InputProps={{
-										startAdornment: (
-											<InputAdornment position="start">
-												<BadgeIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
-											</InputAdornment>
-										),
-									}}
-									sx={{
-										'& .MuiOutlinedInput-root': {
-											bgcolor: 'var(--background)',
-											borderRadius: 2,
-											color: 'var(--text-primary)',
-										},
-									}}
-								>
-									<MenuItem value="user">User</MenuItem>
-									<MenuItem value="admin">Admin</MenuItem>
-									<MenuItem value="manager">Manager</MenuItem>
-									<MenuItem value="customer_service">Customer Service</MenuItem>
-								</TextField>
-							</Box>
+              {activeStep === 1 && (
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2.5 }}>
+                  {/* Phone */}
+                  <Box sx={{ gridColumn: '1 / -1' }}>
+                    <Typography component="label" htmlFor="phone" sx={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)', mb: 1 }}>Phone</Typography>
+                    <TextField
+                      id="phone" name="phone" type="tel" fullWidth value={formData.phone} onChange={handleChange}
+                      placeholder="Enter phone number"
+                      InputProps={{ startAdornment: (<InputAdornment position="start"><PhoneIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} /></InputAdornment>) }}
+                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'var(--background)', borderRadius: 2, color: 'var(--text-primary)' } }}
+                    />
+                  </Box>
+                  {/* Address */}
+                  <Box sx={{ gridColumn: '1 / -1' }}>
+                    <Typography component="label" htmlFor="address" sx={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)', mb: 1 }}>Address</Typography>
+                    <TextField
+                      id="address" name="address" type="text" fullWidth value={formData.address} onChange={handleChange}
+                      placeholder="Enter address"
+                      InputProps={{ startAdornment: (<InputAdornment position="start"><HomeIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} /></InputAdornment>) }}
+                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'var(--background)', borderRadius: 2, color: 'var(--text-primary)' } }}
+                    />
+                  </Box>
+                  {/* City */}
+                  <Box>
+                    <Typography component="label" htmlFor="city" sx={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)', mb: 1 }}>City</Typography>
+                    <TextField
+                      id="city" name="city" type="text" fullWidth value={formData.city} onChange={handleChange}
+                      placeholder="Enter city"
+                      InputProps={{ startAdornment: (<InputAdornment position="start"><LocationCityIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} /></InputAdornment>) }}
+                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'var(--background)', borderRadius: 2, color: 'var(--text-primary)' } }}
+                    />
+                  </Box>
+                  {/* Country */}
+                  <Box>
+                    <Typography component="label" htmlFor="country" sx={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)', mb: 1 }}>Country</Typography>
+                    <TextField
+                      id="country" name="country" type="text" fullWidth value={formData.country} onChange={handleChange}
+                      placeholder="Enter country"
+                      InputProps={{ startAdornment: (<InputAdornment position="start"><PublicIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} /></InputAdornment>) }}
+                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'var(--background)', borderRadius: 2, color: 'var(--text-primary)' } }}
+                    />
+                  </Box>
+                </Box>
+              )}
 
-							{/* Phone */}
-							<Box sx={{ gridColumn: { xs: '1 / -1', sm: '2 / 3' } }}>
-								<Typography
-									component="label"
-									htmlFor="phone"
-									sx={{
-										display: 'block',
-										fontSize: '0.875rem',
-										fontWeight: 500,
-										color: 'var(--text-primary)',
-										mb: 1,
-									}}
-								>
-									Phone
-								</Typography>
-								<TextField
-									id="phone"
-									name="phone"
-									type="tel"
-									fullWidth
-									value={formData.phone}
-									onChange={handleChange}
-									disabled={isLoading}
-									placeholder="Enter phone number"
-									autoComplete="tel"
-									InputProps={{
-										startAdornment: (
-											<InputAdornment position="start">
-												<PhoneIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
-											</InputAdornment>
-										),
-									}}
-									sx={{
-										'& .MuiOutlinedInput-root': {
-											bgcolor: 'var(--background)',
-											borderRadius: 2,
-											color: 'var(--text-primary)',
-										},
-									}}
-								/>
-							</Box>
-
-							{/* Address */}
-							<Box sx={{ gridColumn: '1 / -1' }}>
-								<Typography
-									component="label"
-									htmlFor="address"
-									sx={{
-										display: 'block',
-										fontSize: '0.875rem',
-										fontWeight: 500,
-										color: 'var(--text-primary)',
-										mb: 1,
-									}}
-								>
-									Address
-								</Typography>
-								<TextField
-									id="address"
-									name="address"
-									type="text"
-									fullWidth
-									value={formData.address}
-									onChange={handleChange}
-									disabled={isLoading}
-									placeholder="Enter address"
-									autoComplete="street-address"
-									InputProps={{
-										startAdornment: (
-											<InputAdornment position="start">
-												<HomeIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
-											</InputAdornment>
-										),
-									}}
-									sx={{
-										'& .MuiOutlinedInput-root': {
-											bgcolor: 'var(--background)',
-											borderRadius: 2,
-											color: 'var(--text-primary)',
-										},
-									}}
-								/>
-							</Box>
-
-							{/* City */}
-							<Box sx={{ gridColumn: { xs: '1 / -1', sm: '1 / 2' } }}>
-								<Typography
-									component="label"
-									htmlFor="city"
-									sx={{
-										display: 'block',
-										fontSize: '0.875rem',
-										fontWeight: 500,
-										color: 'var(--text-primary)',
-										mb: 1,
-									}}
-								>
-									City
-								</Typography>
-								<TextField
-									id="city"
-									name="city"
-									type="text"
-									fullWidth
-									value={formData.city}
-									onChange={handleChange}
-									disabled={isLoading}
-									placeholder="Enter city"
-									autoComplete="address-level2"
-									InputProps={{
-										startAdornment: (
-											<InputAdornment position="start">
-												<LocationCityIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
-											</InputAdornment>
-										),
-									}}
-									sx={{
-										'& .MuiOutlinedInput-root': {
-											bgcolor: 'var(--background)',
-											borderRadius: 2,
-											color: 'var(--text-primary)',
-										},
-									}}
-								/>
-							</Box>
-
-							{/* Country */}
-							<Box sx={{ gridColumn: { xs: '1 / -1', sm: '2 / 3' } }}>
-								<Typography
-									component="label"
-									htmlFor="country"
-									sx={{
-										display: 'block',
-										fontSize: '0.875rem',
-										fontWeight: 500,
-										color: 'var(--text-primary)',
-										mb: 1,
-									}}
-								>
-									Country
-								</Typography>
-								<TextField
-									id="country"
-									name="country"
-									type="text"
-									fullWidth
-									value={formData.country}
-									onChange={handleChange}
-									disabled={isLoading}
-									placeholder="Enter country"
-									autoComplete="country-name"
-									InputProps={{
-										startAdornment: (
-											<InputAdornment position="start">
-												<PublicIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
-											</InputAdornment>
-										),
-									}}
-									sx={{
-										'& .MuiOutlinedInput-root': {
-											bgcolor: 'var(--background)',
-											borderRadius: 2,
-											color: 'var(--text-primary)',
-										},
-									}}
-								/>
-							</Box>
-
-							{/* Password */}
-							<Box sx={{ gridColumn: { xs: '1 / -1', sm: '1 / 2' } }}>
-								<Typography
-									component="label"
-									htmlFor="password"
-									sx={{
-										display: 'block',
-										fontSize: '0.875rem',
-										fontWeight: 500,
-										color: 'var(--text-primary)',
-										mb: 1,
-									}}
-								>
-									Password
-								</Typography>
-								<TextField
-									id="password"
-									name="password"
-									type={showPassword ? 'text' : 'password'}
-									fullWidth
-									value={formData.password}
-									onChange={handleChange}
-									required
-									disabled={isLoading}
-									placeholder="Enter password (min. 6 characters)"
-									autoComplete="new-password"
-									InputProps={{
-										startAdornment: (
-											<InputAdornment position="start">
-												<LockIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
-											</InputAdornment>
-										),
-										endAdornment: (
-											<InputAdornment position="end">
-												<IconButton
-													onClick={() => setShowPassword(!showPassword)}
-													edge="end"
-													sx={{
-														color: 'var(--accent-gold)',
-													}}
-												>
-													{showPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
-												</IconButton>
-											</InputAdornment>
-										),
-									}}
-									sx={{
-										'& .MuiOutlinedInput-root': {
-											bgcolor: 'var(--background)',
-											borderRadius: 2,
-											color: 'var(--text-primary)',
-										},
-									}}
-								/>
-							</Box>
-
-							{/* Confirm Password */}
-							<Box sx={{ gridColumn: { xs: '1 / -1', sm: '2 / 3' } }}>
-								<Typography
-									component="label"
-									htmlFor="confirmPassword"
-									sx={{
-										display: 'block',
-										fontSize: '0.875rem',
-										fontWeight: 500,
-										color: 'var(--text-primary)',
-										mb: 1,
-									}}
-								>
-									Confirm Password
-								</Typography>
-								<TextField
-									id="confirmPassword"
-									name="confirmPassword"
-									type={showConfirmPassword ? 'text' : 'password'}
-									fullWidth
-									value={formData.confirmPassword}
-									onChange={handleChange}
-									required
-									disabled={isLoading}
-									placeholder="Confirm password"
-									autoComplete="new-password"
-									InputProps={{
-										startAdornment: (
-											<InputAdornment position="start">
-												<LockIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
-											</InputAdornment>
-										),
-										endAdornment: (
-											<InputAdornment position="end">
-												<IconButton
-													onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-													edge="end"
-													sx={{
-														color: 'var(--accent-gold)',
-													}}
-												>
-													{showConfirmPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
-												</IconButton>
-											</InputAdornment>
-										),
-									}}
-									sx={{
-										'& .MuiOutlinedInput-root': {
-											bgcolor: 'var(--background)',
-											borderRadius: 2,
-											color: 'var(--text-primary)',
-										},
-									}}
-								/>
-							</Box>
-
-							{/* Submit Button - span full width */}
-							<Box sx={{ gridColumn: '1 / -1' }}>
-							<MuiButton
-								type="submit"
-								disabled={isLoading}
-								variant="contained"
-								size="large"
-								sx={{
-									width: '100%',
-									bgcolor: 'var(--accent-gold)',
-									color: 'var(--background)',
-									fontWeight: 600,
-									py: 1.5,
-									fontSize: '1rem',
-										'&:hover': {
-											bgcolor: 'var(--accent-gold)',
-										},
-										'&:disabled': {
-											bgcolor: 'rgba(var(--accent-gold-rgb), 0.5)',
-											color: 'rgba(var(--background-rgb), 0.85)',
-										},
-									}}
-								>
-									{isLoading ? 'Creating...' : 'Create Account'}
-								</MuiButton>
-							</Box>
+              {activeStep === 2 && (
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2.5 }}>
+                  {/* Password */}
+                  <Box sx={{ gridColumn: '1 / -1' }}>
+                    <Typography component="label" htmlFor="password" sx={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)', mb: 1 }}>Password</Typography>
+                    <TextField
+                      id="password" name="password" type={showPassword ? 'text' : 'password'} fullWidth value={formData.password} onChange={handleChange} required
+                      placeholder="Enter password (min. 6 characters)"
+                      InputProps={{
+                        startAdornment: (<InputAdornment position="start"><LockIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} /></InputAdornment>),
+                        endAdornment: (<InputAdornment position="end"><IconButton onClick={() => setShowPassword(!showPassword)} edge="end" sx={{ color: 'var(--accent-gold)' }}>{showPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}</IconButton></InputAdornment>)
+                      }}
+                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'var(--background)', borderRadius: 2, color: 'var(--text-primary)' } }}
+                    />
+                  </Box>
+                  {/* Confirm Password */}
+                  <Box sx={{ gridColumn: '1 / -1' }}>
+                    <Typography component="label" htmlFor="confirmPassword" sx={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)', mb: 1 }}>Confirm Password</Typography>
+                    <TextField
+                      id="confirmPassword" name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} fullWidth value={formData.confirmPassword} onChange={handleChange} required
+                      placeholder="Confirm password"
+                      InputProps={{
+                        startAdornment: (<InputAdornment position="start"><LockIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} /></InputAdornment>),
+                        endAdornment: (<InputAdornment position="end"><IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end" sx={{ color: 'var(--accent-gold)' }}>{showConfirmPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}</IconButton></InputAdornment>)
+                      }}
+                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'var(--background)', borderRadius: 2, color: 'var(--text-primary)' } }}
+                    />
+                  </Box>
+                </Box>
+              )}
 						</Box>
 
-						{/* Back Link */}
-						<Box sx={{ textAlign: 'center', pt: 2 }}>
-							<Typography variant="body2" sx={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-								<Typography
-									component="button"
-									onClick={() => router.push('/dashboard')}
-									sx={{
-										background: 'none',
-										border: 'none',
-										color: 'var(--accent-gold)',
-										fontWeight: 500,
-										cursor: 'pointer',
-										transition: 'color 0.2s ease',
-										'&:hover': {
-											color: 'var(--accent-gold)',
-										},
-									}}
-								>
-									Back to Dashboard
-								</Typography>
-							</Typography>
-						</Box>
+            {/* Actions */}
+            <Box sx={{ display: 'flex', flexDirection: 'row', pt: 4, gap: 2 }}>
+              <MuiButton
+                color="inherit"
+                disabled={activeStep === 0}
+                onClick={handleBack}
+                sx={{
+                  color: 'var(--text-secondary)',
+                  '&:disabled': { opacity: 0.5 },
+                }}
+              >
+                Back
+              </MuiButton>
+              <Box sx={{ flex: '1 1 auto' }} />
+              {activeStep === 0 && (
+                 <MuiButton
+                  onClick={() => router.push('/dashboard/users')}
+                  color="inherit"
+                  sx={{ color: 'var(--text-secondary)', mr: 1 }}
+                >
+                  Cancel
+                </MuiButton>
+              )}
+              <MuiButton
+                onClick={handleNext}
+                variant="contained"
+                disabled={isLoading}
+                sx={{
+                  bgcolor: 'var(--accent-gold)',
+                  color: 'var(--background)',
+                  '&:hover': { bgcolor: 'var(--accent-gold)' },
+                }}
+              >
+                {activeStep === steps.length - 1 ? (isLoading ? 'Creating...' : 'Create Account') : 'Next'}
+              </MuiButton>
+            </Box>
+
 					</Box>
 				</Paper>
 			</motion.div>
