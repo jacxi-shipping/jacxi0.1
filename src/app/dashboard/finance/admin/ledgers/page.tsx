@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
   People,
@@ -16,9 +16,8 @@ import {
   AddCircle,
 } from '@mui/icons-material';
 import {  Box, Typography, TextField, Select, MenuItem, FormControl, InputLabel, Chip } from '@mui/material';
-import { Breadcrumbs, Button, toast, EmptyState, SkeletonCard, SkeletonTable, Tooltip, StatusBadge, DashboardPageSkeleton } from '@/components/design-system';
+import { Breadcrumbs, Button, toast, EmptyState, SkeletonCard, SkeletonTable, Tooltip, StatusBadge, DashboardPageSkeleton, StatsCard, Table } from '@/components/design-system';
 import { DashboardSurface, DashboardPanel, DashboardGrid } from '@/components/dashboard/DashboardSurface';
-import StatsCard from '@/components/dashboard/StatsCard';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 interface UserLedgerSummary {
@@ -124,6 +123,8 @@ export default function AdminLedgersPage() {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
@@ -190,6 +191,84 @@ export default function AdminLedgersPage() {
   const totalCredit = users.reduce((sum, user) => sum + user.totalCredit, 0);
   const usersWithBalance = users.filter(u => u.currentBalance > 0).length;
 
+  const columns = useMemo(() => [
+    {
+      header: 'User',
+      accessor: 'userName' as keyof UserLedgerSummary,
+      render: (row: UserLedgerSummary) => (
+        <Box>
+          <Typography sx={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>
+            {row.userName}
+          </Typography>
+          <Typography sx={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+            {row.email}
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      header: 'Balance',
+      accessor: 'currentBalance' as keyof UserLedgerSummary,
+      align: 'center' as const,
+      render: (row: UserLedgerSummary) => getBalanceChip(row.currentBalance)
+    },
+    {
+      header: 'Total Debit',
+      accessor: 'totalDebit' as keyof UserLedgerSummary,
+      align: 'right' as const,
+      render: (row: UserLedgerSummary) => (
+        <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+          {formatCurrency(row.totalDebit)}
+        </span>
+      )
+    },
+    {
+      header: 'Total Credit',
+      accessor: 'totalCredit' as keyof UserLedgerSummary,
+      align: 'right' as const,
+      render: (row: UserLedgerSummary) => (
+        <span style={{ fontSize: '0.85rem', color: '#22c55e' }}>
+          {formatCurrency(row.totalCredit)}
+        </span>
+      )
+    },
+    {
+      header: 'Transactions',
+      accessor: 'transactionCount' as keyof UserLedgerSummary,
+      align: 'center' as const,
+      render: (row: UserLedgerSummary) => (
+        <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+          {row.transactionCount}
+        </span>
+      )
+    },
+    {
+      header: 'Last Activity',
+      accessor: 'lastTransaction' as keyof UserLedgerSummary,
+      render: (row: UserLedgerSummary) => (
+        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+          {formatDate(row.lastTransaction)}
+        </span>
+      )
+    },
+    {
+      header: 'Actions',
+      align: 'center' as const,
+      render: (row: UserLedgerSummary) => (
+        <Link href={`/dashboard/finance/admin/ledgers/${row.userId}`} style={{ textDecoration: 'none' }}>
+          <Button
+            variant="outline"
+            size="sm"
+            icon={<Visibility />}
+            sx={{ textTransform: 'none', fontSize: '0.75rem' }}
+          >
+            View Ledger
+          </Button>
+        </Link>
+      )
+    }
+  ], []);
+
   if (status === 'loading' || loading) {
     return (
       <ProtectedRoute>
@@ -214,28 +293,32 @@ export default function AdminLedgersPage() {
         {/* Summary Cards */}
         <DashboardGrid className="grid-cols-1 md:grid-cols-4">
           <StatsCard
-            icon={TrendingUpIcon}
+            icon={<TrendingUpIcon />}
             title="Total Outstanding"
             value={formatCurrency(totalBalance)}
             subtitle={`${usersWithBalance} users with balance`}
+            variant="error"
           />
           <StatsCard
-            icon={AttachMoney}
+            icon={<AttachMoney />}
             title="Total Debits"
             value={formatCurrency(totalDebit)}
             subtitle="All charges"
+            variant="warning"
           />
           <StatsCard
-            icon={TrendingDownIcon}
+            icon={<TrendingDownIcon />}
             title="Total Credits"
             value={formatCurrency(totalCredit)}
             subtitle="All payments"
+            variant="success"
           />
           <StatsCard
-            icon={People}
+            icon={<People />}
             title="Users With Balance"
             value={`${usersWithBalance} / ${users.length}`}
             subtitle="Active accounts"
+            variant="info"
           />
         </DashboardGrid>
 
@@ -302,71 +385,12 @@ export default function AdminLedgersPage() {
             </Box>
           }
         >
-          {filteredUsers.length === 0 ? (
-            <Box sx={{ minHeight: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-              <People sx={{ fontSize: 48, color: 'var(--text-secondary)', opacity: 0.5 }} />
-              <Typography sx={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                No users found
-              </Typography>
-            </Box>
-          ) : (
-            <Box sx={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                    <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>User</th>
-                    <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Balance</th>
-                    <th style={{ padding: '12px 8px', textAlign: 'right', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Total Debit</th>
-                    <th style={{ padding: '12px 8px', textAlign: 'right', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Total Credit</th>
-                    <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Transactions</th>
-                    <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Last Activity</th>
-                    <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredUsers.map((user) => (
-                    <tr key={user.userId} style={{ borderBottom: '1px solid var(--border)' }}>
-                      <td style={{ padding: '12px 8px' }}>
-                        <Typography sx={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>
-                          {user.userName}
-                        </Typography>
-                        <Typography sx={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                          {user.email}
-                        </Typography>
-                      </td>
-                      <td style={{ padding: '12px 8px', textAlign: 'center' }}>
-                        {getBalanceChip(user.currentBalance)}
-                      </td>
-                      <td style={{ padding: '12px 8px', textAlign: 'right', fontSize: '0.85rem', color: 'var(--text-primary)' }}>
-                        {formatCurrency(user.totalDebit)}
-                      </td>
-                      <td style={{ padding: '12px 8px', textAlign: 'right', fontSize: '0.85rem', color: '#22c55e' }}>
-                        {formatCurrency(user.totalCredit)}
-                      </td>
-                      <td style={{ padding: '12px 8px', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-primary)' }}>
-                        {user.transactionCount}
-                      </td>
-                      <td style={{ padding: '12px 8px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                        {formatDate(user.lastTransaction)}
-                      </td>
-                      <td style={{ padding: '12px 8px', textAlign: 'center' }}>
-                        <Link href={`/dashboard/finance/admin/ledgers/${user.userId}`} style={{ textDecoration: 'none' }}>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            icon={<Visibility />}
-                            sx={{ textTransform: 'none', fontSize: '0.75rem' }}
-                          >
-                            View Ledger
-                          </Button>
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </Box>
-          )}
+          <Table
+            data={filteredUsers}
+            columns={columns}
+            keyField="userId"
+            emptyMessage="No users found"
+          />
         </DashboardPanel>
       </DashboardSurface>
     </ProtectedRoute>

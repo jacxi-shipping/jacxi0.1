@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
   Download,
   Print,
@@ -16,9 +16,8 @@ import {
   AttachMoney,
 } from '@mui/icons-material';
 import {  Box, Typography, TextField, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
-import { Breadcrumbs, Button, toast, EmptyState, SkeletonCard, SkeletonTable, Tooltip, StatusBadge, TableSkeleton } from '@/components/design-system';
+import { Breadcrumbs, Button, toast, EmptyState, SkeletonCard, SkeletonTable, Tooltip, StatusBadge, TableSkeleton, StatsCard, Table } from '@/components/design-system';
 import { DashboardSurface, DashboardPanel, DashboardGrid } from '@/components/dashboard/DashboardSurface';
-import StatsCard from '@/components/dashboard/StatsCard';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 interface LedgerEntry {
@@ -173,6 +172,88 @@ export default function LedgerPage() {
     return 'var(--text-secondary)';
   };
 
+  const columns = useMemo(() => [
+    {
+      header: 'Date',
+      accessor: 'transactionDate' as keyof LedgerEntry,
+      width: '15%',
+      render: (row: LedgerEntry) => (
+        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+          {formatDate(row.transactionDate)}
+        </span>
+      )
+    },
+    {
+      header: 'Description',
+      accessor: 'description' as keyof LedgerEntry,
+      width: '40%',
+      render: (row: LedgerEntry) => (
+        <Box>
+          <Typography sx={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 500 }}>
+            {row.description}
+          </Typography>
+          {row.notes && (
+            <Typography sx={{ fontSize: '0.75rem', color: 'var(--text-secondary)', mt: 0.5 }}>
+              {row.notes}
+            </Typography>
+          )}
+          {row.shipment && (
+            <Typography sx={{ fontSize: '0.75rem', color: 'var(--accent-gold)', mt: 0.5 }}>
+              {row.shipment.vehicleMake} {row.shipment.vehicleModel}
+            </Typography>
+          )}
+        </Box>
+      )
+    },
+    {
+      header: 'Type',
+      accessor: 'type' as keyof LedgerEntry,
+      align: 'center' as const,
+      width: '15%',
+      render: (row: LedgerEntry) => (
+        <Box
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 0.5,
+            px: 1.5,
+            py: 0.5,
+            borderRadius: 1,
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            backgroundColor: row.type === 'DEBIT' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)',
+            color: row.type === 'DEBIT' ? '#ef4444' : '#22c55e',
+          }}
+        >
+          {row.type === 'DEBIT' ? <TrendingUpIcon sx={{ fontSize: 14 }} /> : <TrendingDownIcon sx={{ fontSize: 14 }} />}
+          {row.type}
+        </Box>
+      )
+    },
+    {
+      header: 'Amount',
+      accessor: 'amount' as keyof LedgerEntry,
+      align: 'right' as const,
+      width: '15%',
+      render: (row: LedgerEntry) => (
+        <span style={{ fontSize: '0.9rem', fontWeight: 600, color: row.type === 'DEBIT' ? '#ef4444' : '#22c55e' }}>
+          {row.type === 'DEBIT' ? '+' : '-'}{formatCurrency(row.amount)}
+        </span>
+      )
+    },
+    {
+      header: 'Balance',
+      accessor: 'balance' as keyof LedgerEntry,
+      align: 'right' as const,
+      width: '15%',
+      render: (row: LedgerEntry) => (
+        <span style={{ fontSize: '0.9rem', fontWeight: 600, color: getBalanceColor(row.balance) }}>
+          {formatCurrency(row.balance)}
+        </span>
+      )
+    }
+  ], []);
+
   if (status === 'loading' || loading) {
     return (
       <ProtectedRoute>
@@ -199,22 +280,25 @@ export default function LedgerPage() {
         {/* Stats Cards */}
         <DashboardGrid className="grid-cols-1 md:grid-cols-3">
           <StatsCard
-            icon={TrendingUpIcon}
+            icon={<TrendingUpIcon />}
             title="Total Debit"
             value={formatCurrency(summary.totalDebit)}
             subtitle="Amount owed"
+            variant="error"
           />
           <StatsCard
-            icon={TrendingDownIcon}
+            icon={<TrendingDownIcon />}
             title="Total Credit"
             value={formatCurrency(summary.totalCredit)}
             subtitle="Amount paid"
+            variant="success"
           />
           <StatsCard
-            icon={AttachMoney}
+            icon={<AttachMoney />}
             title="Current Balance"
             value={formatCurrency(summary.currentBalance)}
             subtitle={summary.currentBalance > 0 ? 'Amount owed' : summary.currentBalance < 0 ? 'Credit balance' : 'Settled'}
+            variant={summary.currentBalance > 0 ? 'error' : summary.currentBalance < 0 ? 'success' : 'info'}
           />
         </DashboardGrid>
 
@@ -319,111 +403,42 @@ export default function LedgerPage() {
             </Box>
           }
         >
-          {loading ? (
-            <TableSkeleton rows={5} />
-          ) : entries.length === 0 ? (
-            <Box sx={{ minHeight: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-              <AccountBalance sx={{ fontSize: 48, color: 'var(--text-secondary)', opacity: 0.5 }} />
-              <Typography sx={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                No transactions found
-              </Typography>
-            </Box>
-          ) : (
-            <>
-              <Box sx={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                      <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Date</th>
-                      <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Description</th>
-                      <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Type</th>
-                      <th style={{ padding: '12px 8px', textAlign: 'right', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Amount</th>
-                      <th style={{ padding: '12px 8px', textAlign: 'right', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Balance</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {entries.map((entry) => (
-                      <tr key={entry.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                        <td style={{ padding: '12px 8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                          {formatDate(entry.transactionDate)}
-                        </td>
-                        <td style={{ padding: '12px 8px' }}>
-                          <Typography sx={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 500 }}>
-                            {entry.description}
-                          </Typography>
-                          {entry.notes && (
-                            <Typography sx={{ fontSize: '0.75rem', color: 'var(--text-secondary)', mt: 0.5 }}>
-                              {entry.notes}
-                            </Typography>
-                          )}
-                          {entry.shipment && (
-                            <Typography sx={{ fontSize: '0.75rem', color: 'var(--accent-gold)', mt: 0.5 }}>
-                              {entry.shipment.vehicleMake} {entry.shipment.vehicleModel}
-                            </Typography>
-                          )}
-                        </td>
-                        <td style={{ padding: '12px 8px', textAlign: 'center' }}>
-                          <Box
-                            sx={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 0.5,
-                              px: 1.5,
-                              py: 0.5,
-                              borderRadius: 1,
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                              backgroundColor: entry.type === 'DEBIT' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)',
-                              color: entry.type === 'DEBIT' ? '#ef4444' : '#22c55e',
-                            }}
-                          >
-                            {entry.type === 'DEBIT' ? <TrendingUpIcon sx={{ fontSize: 14 }} /> : <TrendingDownIcon sx={{ fontSize: 14 }} />}
-                            {entry.type}
-                          </Box>
-                        </td>
-                        <td style={{ padding: '12px 8px', textAlign: 'right', fontSize: '0.9rem', fontWeight: 600, color: entry.type === 'DEBIT' ? '#ef4444' : '#22c55e' }}>
-                          {entry.type === 'DEBIT' ? '+' : '-'}{formatCurrency(entry.amount)}
-                        </td>
-                        <td style={{ padding: '12px 8px', textAlign: 'right', fontSize: '0.9rem', fontWeight: 600, color: getBalanceColor(entry.balance) }}>
-                          {formatCurrency(entry.balance)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </Box>
+          <Table 
+            data={entries}
+            columns={columns}
+            keyField="id"
+            emptyMessage="No transactions found"
+          />
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 3 }}>
-                  <Typography sx={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                    Page {page} of {totalPages}
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPage(p => Math.max(1, p - 1))}
-                      disabled={page === 1}
-                      icon={<ChevronLeft />}
-                      sx={{ textTransform: 'none', fontSize: '0.75rem' }}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                      disabled={page === totalPages}
-                      icon={<ChevronRight />}
-                      sx={{ textTransform: 'none', fontSize: '0.75rem' }}
-                    >
-                      Next
-                    </Button>
-                  </Box>
-                </Box>
-              )}
-            </>
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 3 }}>
+              <Typography sx={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                Page {page} of {totalPages}
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  icon={<ChevronLeft />}
+                  sx={{ textTransform: 'none', fontSize: '0.75rem' }}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  icon={<ChevronRight />}
+                  sx={{ textTransform: 'none', fontSize: '0.75rem' }}
+                >
+                  Next
+                </Button>
+              </Box>
+            </Box>
           )}
         </DashboardPanel>
       </DashboardSurface>

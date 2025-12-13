@@ -19,7 +19,14 @@ export type ShipmentStatus =
   | 'RELEASED' 
   | 'DELIVERED' 
   | 'CANCELLED' 
-  | 'DELAYED';
+  | 'DELAYED'
+  // Container Statuses
+  | 'CREATED'
+  | 'WAITING_FOR_LOADING'
+  | 'LOADED'
+  | 'ARRIVED_PORT'
+  | 'CUSTOMS_CLEARANCE'
+  | 'CLOSED';
 
 // Payment Status Types
 export type PaymentStatus = 
@@ -89,6 +96,38 @@ const statusColors: Record<string, { bg: string; text: string; border: string }>
     bg: 'rgba(239, 68, 68, 0.15)',
     text: 'var(--error)',
     border: 'var(--error)',
+  },
+
+  // Container Statuses
+  CREATED: {
+    bg: 'rgba(107, 114, 128, 0.15)',
+    text: 'var(--text-secondary)',
+    border: 'var(--text-secondary)',
+  },
+  WAITING_FOR_LOADING: {
+    bg: 'rgba(245, 158, 11, 0.15)',
+    text: 'var(--warning)',
+    border: 'var(--warning)',
+  },
+  LOADED: {
+    bg: 'rgba(59, 130, 246, 0.15)',
+    text: 'var(--info)',
+    border: 'var(--info)',
+  },
+  ARRIVED_PORT: {
+    bg: 'rgba(16, 185, 129, 0.15)',
+    text: 'var(--success)',
+    border: 'var(--success)',
+  },
+  CUSTOMS_CLEARANCE: {
+    bg: 'rgba(249, 115, 22, 0.15)',
+    text: '#F97316',
+    border: '#F97316',
+  },
+  CLOSED: {
+    bg: 'rgba(75, 85, 99, 0.15)',
+    text: 'rgb(75, 85, 99)',
+    border: 'rgb(75, 85, 99)',
   },
 
   // Payment Statuses
