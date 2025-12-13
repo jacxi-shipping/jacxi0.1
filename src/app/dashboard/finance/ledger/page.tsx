@@ -16,9 +16,8 @@ import {
   AttachMoney,
 } from '@mui/icons-material';
 import {  Box, Typography, TextField, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
-import { Breadcrumbs, Button, toast, EmptyState, SkeletonCard, SkeletonTable, Tooltip, StatusBadge, TableSkeleton } from '@/components/design-system';
+import { Breadcrumbs, Button, toast, EmptyState, SkeletonCard, SkeletonTable, Tooltip, StatusBadge, TableSkeleton, StatsCard } from '@/components/design-system';
 import { DashboardSurface, DashboardPanel, DashboardGrid } from '@/components/dashboard/DashboardSurface';
-import StatsCard from '@/components/dashboard/StatsCard';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 interface LedgerEntry {
@@ -199,22 +198,25 @@ export default function LedgerPage() {
         {/* Stats Cards */}
         <DashboardGrid className="grid-cols-1 md:grid-cols-3">
           <StatsCard
-            icon={TrendingUpIcon}
+            icon={<TrendingUpIcon />}
             title="Total Debit"
             value={formatCurrency(summary.totalDebit)}
             subtitle="Amount owed"
+            variant="error"
           />
           <StatsCard
-            icon={TrendingDownIcon}
+            icon={<TrendingDownIcon />}
             title="Total Credit"
             value={formatCurrency(summary.totalCredit)}
             subtitle="Amount paid"
+            variant="success"
           />
           <StatsCard
-            icon={AttachMoney}
+            icon={<AttachMoney />}
             title="Current Balance"
             value={formatCurrency(summary.currentBalance)}
             subtitle={summary.currentBalance > 0 ? 'Amount owed' : summary.currentBalance < 0 ? 'Credit balance' : 'Settled'}
+            variant={summary.currentBalance > 0 ? 'error' : summary.currentBalance < 0 ? 'success' : 'info'}
           />
         </DashboardGrid>
 

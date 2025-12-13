@@ -16,9 +16,8 @@ import {
   AddCircle,
 } from '@mui/icons-material';
 import {  Box, Typography, TextField, Select, MenuItem, FormControl, InputLabel, Chip } from '@mui/material';
-import { Breadcrumbs, Button, toast, EmptyState, SkeletonCard, SkeletonTable, Tooltip, StatusBadge, DashboardPageSkeleton } from '@/components/design-system';
+import { Breadcrumbs, Button, toast, EmptyState, SkeletonCard, SkeletonTable, Tooltip, StatusBadge, DashboardPageSkeleton, StatsCard } from '@/components/design-system';
 import { DashboardSurface, DashboardPanel, DashboardGrid } from '@/components/dashboard/DashboardSurface';
-import StatsCard from '@/components/dashboard/StatsCard';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 interface UserLedgerSummary {
@@ -124,6 +123,8 @@ export default function AdminLedgersPage() {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
@@ -214,28 +215,32 @@ export default function AdminLedgersPage() {
         {/* Summary Cards */}
         <DashboardGrid className="grid-cols-1 md:grid-cols-4">
           <StatsCard
-            icon={TrendingUpIcon}
+            icon={<TrendingUpIcon />}
             title="Total Outstanding"
             value={formatCurrency(totalBalance)}
             subtitle={`${usersWithBalance} users with balance`}
+            variant="error"
           />
           <StatsCard
-            icon={AttachMoney}
+            icon={<AttachMoney />}
             title="Total Debits"
             value={formatCurrency(totalDebit)}
             subtitle="All charges"
+            variant="warning"
           />
           <StatsCard
-            icon={TrendingDownIcon}
+            icon={<TrendingDownIcon />}
             title="Total Credits"
             value={formatCurrency(totalCredit)}
             subtitle="All payments"
+            variant="success"
           />
           <StatsCard
-            icon={People}
+            icon={<People />}
             title="Users With Balance"
             value={`${usersWithBalance} / ${users.length}`}
             subtitle="Active accounts"
+            variant="info"
           />
         </DashboardGrid>
 

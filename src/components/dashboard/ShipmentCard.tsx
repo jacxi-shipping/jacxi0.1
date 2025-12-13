@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { ArrowForward, LocalShipping, LocationOn, CalendarToday } from '@mui/icons-material';
-import { Box, Typography, Chip, Button, Slide, LinearProgress } from '@mui/material';
+import { Box, Typography, Button, Slide, LinearProgress } from '@mui/material';
 import { useState, useEffect } from 'react';
+import { StatusBadge } from '@/components/design-system';
 
 type ShipmentCardProps = {
 	id: string;
@@ -27,36 +28,6 @@ type ShipmentCardProps = {
 	delay?: number;
 };
 
-type StatusColors = {
-	bg: string;
-	text: string;
-	border: string;
-};
-
-const neutralStatus: StatusColors = {
-	bg: 'rgba(var(--panel-rgb), 0.35)',
-	text: 'var(--text-primary)',
-	border: 'var(--border)',
-};
-
-const statusColors: Record<string, StatusColors> = {
-	'ON_HAND': { bg: 'rgba(var(--accent-gold-rgb), 0.15)', text: 'var(--accent-gold)', border: 'rgba(var(--accent-gold-rgb), 0.4)' },
-	'IN_TRANSIT': { bg: 'rgba(var(--accent-gold-rgb), 0.15)', text: 'var(--accent-gold)', border: 'rgba(var(--accent-gold-rgb), 0.4)' },
-};
-
-const containerStatusColors: Record<string, StatusColors> = {
-	'CREATED': { bg: 'rgba(107, 114, 128, 0.15)', text: 'rgb(107, 114, 128)', border: 'rgba(107, 114, 128, 0.4)' },
-	'WAITING_FOR_LOADING': { bg: 'rgba(251, 191, 36, 0.15)', text: 'rgb(251, 191, 36)', border: 'rgba(251, 191, 36, 0.4)' },
-	'LOADED': { bg: 'rgba(59, 130, 246, 0.15)', text: 'rgb(59, 130, 246)', border: 'rgba(59, 130, 246, 0.4)' },
-	'IN_TRANSIT': { bg: 'rgba(99, 102, 241, 0.15)', text: 'rgb(99, 102, 241)', border: 'rgba(99, 102, 241, 0.4)' },
-	'ARRIVED_PORT': { bg: 'rgba(34, 197, 94, 0.15)', text: 'rgb(34, 197, 94)', border: 'rgba(34, 197, 94, 0.4)' },
-	'CUSTOMS_CLEARANCE': { bg: 'rgba(249, 115, 22, 0.15)', text: 'rgb(249, 115, 22)', border: 'rgba(249, 115, 22, 0.4)' },
-	'RELEASED': { bg: 'rgba(20, 184, 166, 0.15)', text: 'rgb(20, 184, 166)', border: 'rgba(20, 184, 166, 0.4)' },
-	'CLOSED': { bg: 'rgba(75, 85, 99, 0.15)', text: 'rgb(75, 85, 99)', border: 'rgba(75, 85, 99, 0.4)' },
-};
-
-const defaultColors: StatusColors = neutralStatus;
-
 export default function ShipmentCard({
 	id,
 	vehicleType,
@@ -69,7 +40,6 @@ export default function ShipmentCard({
 	container,
 	delay = 0,
 }: ShipmentCardProps) {
-	const colors = statusColors[status] || defaultColors;
 	const [isVisible, setIsVisible] = useState(false);
 
 	useEffect(() => {
@@ -128,25 +98,10 @@ export default function ShipmentCard({
 							</Typography>
 						)}
 					</Box>
-					<Chip
-						label={status.replace(/_/g, ' ')}
-						size="small"
-						sx={{
-							height: { xs: 18, sm: 20 },
-							fontSize: { xs: '0.6rem', sm: '0.65rem' },
-							fontWeight: 600,
-							borderColor: colors.border,
-							color: colors.text,
-							backgroundColor: colors.bg,
-							flexShrink: 0,
-							maxWidth: { xs: '90px', sm: 'none' },
-							'& .MuiChip-label': {
-								px: { xs: 0.5, sm: 1 },
-								overflow: 'hidden',
-								textOverflow: 'ellipsis',
-							},
-						}}
-						variant="outlined"
+					<StatusBadge 
+						status={status} 
+						variant="outline"
+						size="sm"
 					/>
 				</Box>
 
@@ -200,25 +155,10 @@ export default function ShipmentCard({
 								</Link>
 							</Box>
 							{container.status && (
-								<Chip
-									label={container.status.replace(/_/g, ' ')}
-									size="small"
-									sx={{
-										height: { xs: 16, sm: 18 },
-										fontSize: { xs: '0.55rem', sm: '0.6rem' },
-										fontWeight: 600,
-										borderColor: containerStatusColors[container.status]?.border || 'var(--border)',
-										color: containerStatusColors[container.status]?.text || 'var(--text-primary)',
-										backgroundColor: containerStatusColors[container.status]?.bg || 'rgba(var(--panel-rgb), 0.35)',
-										flexShrink: 0,
-										maxWidth: { xs: '80px', sm: 'none' },
-										'& .MuiChip-label': {
-											px: { xs: 0.4, sm: 0.8 },
-											overflow: 'hidden',
-											textOverflow: 'ellipsis',
-										},
-									}}
-									variant="outlined"
+								<StatusBadge 
+									status={container.status} 
+									variant="outline"
+									size="sm"
 								/>
 							)}
 						</Box>

@@ -39,9 +39,8 @@ import {
   Snackbar,
   Chip,
 } from '@mui/material';
-import { Breadcrumbs, Button, toast, EmptyState, SkeletonCard, SkeletonTable, Tooltip, StatusBadge, DashboardPageSkeleton } from '@/components/design-system';
+import { Breadcrumbs, Button, toast, EmptyState, SkeletonCard, SkeletonTable, Tooltip, StatusBadge, DashboardPageSkeleton, StatsCard } from '@/components/design-system';
 import { DashboardSurface, DashboardPanel, DashboardGrid } from '@/components/dashboard/DashboardSurface';
-import StatsCard from '@/components/dashboard/StatsCard';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 interface LedgerEntry {
@@ -350,22 +349,25 @@ export default function UserLedgerManagementPage() {
         {/* Summary Cards */}
         <DashboardGrid className="grid-cols-1 md:grid-cols-3">
           <StatsCard
-            icon={summary.currentBalance > 0 ? TrendingUpIcon : summary.currentBalance < 0 ? TrendingDownIcon : AttachMoney}
+            icon={summary.currentBalance > 0 ? <TrendingUpIcon /> : summary.currentBalance < 0 ? <TrendingDownIcon /> : <AttachMoney />}
             title="Current Balance"
             value={formatCurrency(summary.currentBalance)}
             subtitle={summary.currentBalance > 0 ? 'Amount Owed' : summary.currentBalance < 0 ? 'Credit Balance' : 'Settled'}
+            variant={summary.currentBalance > 0 ? 'error' : summary.currentBalance < 0 ? 'success' : 'info'}
           />
           <StatsCard
-            icon={TrendingUpIcon}
+            icon={<TrendingUpIcon />}
             title="Total Debits"
             value={formatCurrency(summary.totalDebit)}
             subtitle="Amount charged"
+            variant="warning"
           />
           <StatsCard
-            icon={TrendingDownIcon}
+            icon={<TrendingDownIcon />}
             title="Total Credits"
             value={formatCurrency(summary.totalCredit)}
             subtitle="Amount paid"
+            variant="success"
           />
         </DashboardGrid>
 
@@ -478,7 +480,7 @@ export default function UserLedgerManagementPage() {
         {/* Transactions Table */}
         <DashboardPanel
           title="Transaction History"
-          description={`${entries.length} transaction${entries.length !== 1 ? 's' : ''} found`}
+          description={`${entries.length} transaction${entries.length !== 1 ? 's' : ''}`}
           fullHeight
         >
           {entries.length === 0 ? (
