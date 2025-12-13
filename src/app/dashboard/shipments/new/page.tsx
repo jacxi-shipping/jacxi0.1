@@ -8,11 +8,12 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, Upload, X, Loader2, Package, User, DollarSign, FileText, CheckCircle, ArrowRight } from 'lucide-react';
-import { Box, Stepper, Step, StepLabel, Typography } from '@mui/material';
+import { Box, Stepper, Step, StepLabel, Typography, LinearProgress } from '@mui/material';
 import { DashboardSurface, DashboardPanel } from '@/components/dashboard/DashboardSurface';
 import { PageHeader, Button, FormField, Breadcrumbs, toast } from '@/components/design-system';
 import { shipmentSchema, type ShipmentFormData } from '@/lib/validations/shipment';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { compressImage, isValidImageFile, formatFileSize } from '@/lib/utils/image-compression';
 
 interface UserOption {
 	id: string;
@@ -47,6 +48,8 @@ export default function NewShipmentPage() {
 	const [loadingContainers, setLoadingContainers] = useState(false);
 	const [vehiclePhotos, setVehiclePhotos] = useState<string[]>([]);
 	const [uploading, setUploading] = useState(false);
+	const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
+	const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
 	const [decodingVin, setDecodingVin] = useState(false);
 
 	const {
@@ -140,32 +143,114 @@ export default function NewShipmentPage() {
 		}
 	};
 
-	// Photo upload
-	const handlePhotoUpload = async (file: File) => {
-		setUploading(true);
-		try {
-			const formData = new FormData();
-			formData.append('file', file);
+	// Photo upload with compression and progress tracking
+	const handlePhotoUpload = async (file: File, fileId: string) => {
+		// Validate file type
+		if (!isValidImageFile(file)) {
+			toast.error('Invalid file type', {
+				description: 'Please upload JPEG, PNG, or WebP images only'
+			});
+			return null;
+		}
 
-			const response = await fetch('/api/upload', {
-				method: 'POST',
-				body: formData,
+		// Validate file size (max 10MB before compression)
+		const maxSize = 10 * 1024 * 1024; // 10MB
+		if (file.size > maxSize) {
+			toast.error('File too large', {
+				description: `File size must be less than ${formatFileSize(maxSize)}`
+			});
+			return null;
+		}
+
+		setUploadingFiles((prev) => new Set(prev).add(fileId));
+		setUploadProgress((prev) => ({ ...prev, [fileId]: 0 }));
+
+		try {
+			// Compress image
+			setUploadProgress((prev) => ({ ...prev, [fileId]: 10 }));
+			const compressedFile = await compressImage(file, 1920, 1920, 0.8);
+			setUploadProgress((prev) => ({ ...prev, [fileId]: 30 }));
+
+			// Upload compressed file
+			const formData = new FormData();
+			formData.append('file', compressedFile);
+
+			const xhr = new XMLHttpRequest();
+
+			// Track upload progress
+			xhr.upload.addEventListener('progress', (e) => {
+				if (e.lengthComputable) {
+					const percentComplete = 30 + (e.loaded / e.total) * 60; // 30-90%
+					setUploadProgress((prev) => ({ ...prev, [fileId]: percentComplete }));
+				}
 			});
 
-			if (response.ok) {
-				const result = await response.json();
-				const newPhotos = [...vehiclePhotos, result.url];
-				setVehiclePhotos(newPhotos);
+			const uploadPromise = new Promise<string>((resolve, reject) => {
+				xhr.addEventListener('load', () => {
+					if (xhr.status === 200) {
+						try {
+							const result = JSON.parse(xhr.responseText);
+							setUploadProgress((prev) => ({ ...prev, [fileId]: 100 }));
+							resolve(result.url);
+						} catch (error) {
+							reject(new Error('Failed to parse response'));
+						}
+					} else {
+						reject(new Error('Upload failed'));
+					}
+				});
+
+				xhr.addEventListener('error', () => {
+					reject(new Error('Upload failed'));
+				});
+
+				xhr.open('POST', '/api/upload');
+				xhr.send(formData);
+			});
+
+			const url = await uploadPromise;
+
+			// Update photos state
+			setVehiclePhotos((prev) => {
+				const newPhotos = [...prev, url];
 				setValue('vehiclePhotos', newPhotos);
-				return result.url;
-			} else {
-				throw new Error('Upload failed');
-			}
+				return newPhotos;
+			});
+
+			// Clean up progress tracking after a delay
+			setTimeout(() => {
+				setUploadProgress((prev) => {
+					const newProgress = { ...prev };
+					delete newProgress[fileId];
+					return newProgress;
+				});
+				setUploadingFiles((prev) => {
+					const newSet = new Set(prev);
+					newSet.delete(fileId);
+					return newSet;
+				});
+			}, 500);
+
+			return url;
 		} catch (error) {
 			console.error('Error uploading photo:', error);
 			toast.error('Failed to upload photo', {
-				description: 'Please try again'
+				description: error instanceof Error ? error.message : 'Please try again'
 			});
+			
+			// Clean up on error
+			setUploadProgress((prev) => {
+				const newProgress = { ...prev };
+				delete newProgress[fileId];
+				return newProgress;
+			});
+			setUploadingFiles((prev) => {
+				const newSet = new Set(prev);
+				newSet.delete(fileId);
+				return newSet;
+			});
+			
+			return null;
 		} finally {
 			setUploading(false);
 		}
@@ -175,11 +260,18 @@ export default function NewShipmentPage() {
 		const files = e.target.files;
 		if (!files || files.length === 0) return;
 
-		for (let i = 0; i < files.length; i++) {
-			await handlePhotoUpload(files[i]);
-		}
+		setUploading(true);
+
+		// Process all files in parallel
+		const uploadPromises = Array.from(files).map((file, index) => {
+			const fileId = `${Date.now()}-${index}-${file.name}`;
+			return handlePhotoUpload(file, fileId);
+		});
+
+		await Promise.all(uploadPromises);
 
 		e.target.value = '';
+		setUploading(false);
 	};
 
 	const removePhoto = (index: number) => {
@@ -600,11 +692,11 @@ export default function NewShipmentPage() {
 										disabled={uploading}
 									/>
 									<Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, py: 4 }}>
-										{uploading ? (
+										{uploadingFiles.size > 0 ? (
 											<>
 												<Loader2 style={{ fontSize: 40, color: 'var(--accent-gold)' }} className="animate-spin" />
 												<Typography sx={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-													Uploading...
+													Uploading {uploadingFiles.size} photo{uploadingFiles.size !== 1 ? 's' : ''}...
 												</Typography>
 											</>
 										) : (
@@ -614,12 +706,39 @@ export default function NewShipmentPage() {
 													Click to upload vehicle photos
 												</Typography>
 												<Typography sx={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-													PNG, JPG up to 10MB (Multiple files supported)
+													PNG, JPG, WebP up to 10MB (Multiple files supported, auto-compressed)
 												</Typography>
 											</>
 										)}
 									</Box>
 								</label>
+
+								{/* Upload Progress Indicators */}
+								{Object.keys(uploadProgress).length > 0 && (
+									<Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+										{Object.entries(uploadProgress).map(([fileId, progress]) => (
+											<Box key={fileId} sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+												<Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+													<Typography sx={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+														Uploading... {Math.round(progress)}%
+													</Typography>
+												</Box>
+												<LinearProgress 
+													variant="determinate" 
+													value={progress} 
+													sx={{
+														height: 6,
+														borderRadius: 3,
+														backgroundColor: 'rgba(var(--border-rgb), 0.2)',
+														'& .MuiLinearProgress-bar': {
+															backgroundColor: 'var(--accent-gold)',
+														},
+													}}
+												/>
+											</Box>
+										))}
+									</Box>
+								)}
 
 								{vehiclePhotos.length > 0 && (
 									<Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 2 }}>
@@ -660,6 +779,7 @@ export default function NewShipmentPage() {
 														transition: 'opacity 0.2s ease',
 														cursor: 'pointer',
 														border: 'none',
+														zIndex: 1,
 														'&:hover': {
 															bgcolor: 'rgb(239, 68, 68)',
 														},

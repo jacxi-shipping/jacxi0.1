@@ -19,6 +19,7 @@ import {
   Save,
   AlertCircle
 } from 'lucide-react';
+<<<<<<< HEAD
 import { Box, Typography } from '@mui/material';
 
 import { DashboardSurface, DashboardPanel } from '@/components/dashboard/DashboardSurface';
@@ -26,6 +27,16 @@ import { PageHeader, Button, FormField, Breadcrumbs, toast, EmptyState, FormPage
 import { shipmentSchema, type ShipmentFormData } from '@/lib/validations/shipment';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
+=======
+import { Box, Typography, LinearProgress } from '@mui/material';
+
+import { DashboardSurface, DashboardPanel } from '@/components/dashboard/DashboardSurface';
+import { PageHeader, Button, FormField, Breadcrumbs, toast, EmptyState, FormPageSkeleton } from '@/components/design-system';
+import { shipmentSchema, type ShipmentFormData } from '@/lib/validations/shipment';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { compressImage, isValidImageFile, formatFileSize } from '@/lib/utils/image-compression';
+
+>>>>>>> 90e9bd4 (Fix multiple photo uploads with compression and progress bars)
 interface UserOption {
   id: string;
   name: string | null;
@@ -54,6 +65,11 @@ export default function EditShipmentPage() {
   const [vehiclePhotos, setVehiclePhotos] = useState<string[]>([]);
   const [arrivalPhotos, setArrivalPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+<<<<<<< HEAD
+=======
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
+  const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
+>>>>>>> 90e9bd4 (Fix multiple photo uploads with compression and progress bars)
   const [decodingVin, setDecodingVin] = useState(false);
 
   const isAdmin = useMemo(() => session?.user?.role === 'admin', [session]);
@@ -196,36 +212,118 @@ export default function EditShipmentPage() {
     }
   };
 
-  // Photo upload
-  const handlePhotoUpload = async (file: File, isArrival: boolean = false) => {
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
+  // Photo upload with compression and progress tracking
+  const handlePhotoUpload = async (file: File, fileId: string, isArrival: boolean = false) => {
+    // Validate file type
+    if (!isValidImageFile(file)) {
+      toast.error('Invalid file type', {
+        description: 'Please upload JPEG, PNG, or WebP images only'
+      });
+      return null;
+    }
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
+    // Validate file size (max 10MB before compression)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      toast.error('File too large', {
+        description: `File size must be less than ${formatFileSize(maxSize)}`
+      });
+      return null;
+    }
+
+    setUploadingFiles((prev) => new Set(prev).add(fileId));
+    setUploadProgress((prev) => ({ ...prev, [fileId]: 0 }));
+
+    try {
+      // Compress image
+      setUploadProgress((prev) => ({ ...prev, [fileId]: 10 }));
+      const compressedFile = await compressImage(file, 1920, 1920, 0.8);
+      setUploadProgress((prev) => ({ ...prev, [fileId]: 30 }));
+
+      // Upload compressed file
+      const formData = new FormData();
+      formData.append('file', compressedFile);
+
+      const xhr = new XMLHttpRequest();
+
+      // Track upload progress
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percentComplete = 30 + (e.loaded / e.total) * 60; // 30-90%
+          setUploadProgress((prev) => ({ ...prev, [fileId]: percentComplete }));
+        }
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        if (isArrival) {
-            const newPhotos = [...arrivalPhotos, result.url];
-            setArrivalPhotos(newPhotos);
-            // Arrival photos are not part of main schema but we'll send them on submit
-        } else {
-            const newPhotos = [...vehiclePhotos, result.url];
-            setVehiclePhotos(newPhotos);
-            setValue('vehiclePhotos', newPhotos);
-        }
-        return result.url;
+      const uploadPromise = new Promise<string>((resolve, reject) => {
+        xhr.addEventListener('load', () => {
+          if (xhr.status === 200) {
+            try {
+              const result = JSON.parse(xhr.responseText);
+              setUploadProgress((prev) => ({ ...prev, [fileId]: 100 }));
+              resolve(result.url);
+            } catch (error) {
+              reject(new Error('Failed to parse response'));
+            }
+          } else {
+            reject(new Error('Upload failed'));
+          }
+        });
+
+        xhr.addEventListener('error', () => {
+          reject(new Error('Upload failed'));
+        });
+
+        xhr.open('POST', '/api/upload');
+        xhr.send(formData);
+      });
+
+      const url = await uploadPromise;
+
+      // Update photos state
+      if (isArrival) {
+        setArrivalPhotos((prev) => [...prev, url]);
       } else {
-        throw new Error('Upload failed');
+        setVehiclePhotos((prev) => {
+          const newPhotos = [...prev, url];
+          setValue('vehiclePhotos', newPhotos);
+          return newPhotos;
+        });
       }
+
+      // Clean up progress tracking after a delay
+      setTimeout(() => {
+        setUploadProgress((prev) => {
+          const newProgress = { ...prev };
+          delete newProgress[fileId];
+          return newProgress;
+        });
+        setUploadingFiles((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(fileId);
+          return newSet;
+        });
+      }, 500);
+
+      return url;
     } catch (error) {
       console.error('Error uploading photo:', error);
-      toast.error('Failed to upload photo');
+      toast.error('Failed to upload photo', {
+        description: error instanceof Error ? error.message : 'Please try again'
+      });
+      
+      // Clean up on error
+      setUploadProgress((prev) => {
+        const newProgress = { ...prev };
+        delete newProgress[fileId];
+        return newProgress;
+      });
+      setUploadingFiles((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(fileId);
+        return newSet;
+      });
+      
+      return null;
     } finally {
       setUploading(false);
     }
@@ -235,11 +333,18 @@ export default function EditShipmentPage() {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    for (let i = 0; i < files.length; i++) {
-      await handlePhotoUpload(files[i], isArrival);
-    }
+    setUploading(true);
+
+    // Process all files in parallel
+    const uploadPromises = Array.from(files).map((file, index) => {
+      const fileId = `${Date.now()}-${index}-${file.name}-${isArrival ? 'arrival' : 'vehicle'}`;
+      return handlePhotoUpload(file, fileId, isArrival);
+    });
+
+    await Promise.all(uploadPromises);
 
     e.target.value = '';
+    setUploading(false);
   };
 
   const removePhoto = (index: number, isArrival: boolean = false) => {
@@ -641,6 +746,7 @@ export default function EditShipmentPage() {
                                     disabled={uploading}
                                 />
                                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, py: 4 }}>
+<<<<<<< HEAD
                                     {uploading ? (
                                         <Loader2 className="w-8 h-8 animate-spin text-[var(--accent-gold)]" />
                                     ) : (
@@ -652,6 +758,58 @@ export default function EditShipmentPage() {
                                 </Box>
                             </label>
 
+=======
+                                    {Array.from(uploadingFiles).some(id => !id.includes('arrival')) ? (
+                                        <>
+                                            <Loader2 className="w-8 h-8 animate-spin text-[var(--accent-gold)]" />
+                                            <Typography variant="body2" color="text.secondary">
+                                                Uploading {Array.from(uploadingFiles).filter(id => !id.includes('arrival')).length} photo{Array.from(uploadingFiles).filter(id => !id.includes('arrival')).length !== 1 ? 's' : ''}...
+                                            </Typography>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Upload className="w-8 h-8 text-[var(--text-secondary)]" />
+                                            <Typography variant="body2" color="text.secondary">
+                                                Click to upload vehicle photos
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                                                PNG, JPG, WebP up to 10MB (Multiple files supported, auto-compressed)
+                                            </Typography>
+                                        </>
+                                    )}
+                                </Box>
+                            </label>
+
+                            {/* Upload Progress Indicators */}
+                            {Object.keys(uploadProgress).filter(id => !id.includes('arrival')).length > 0 && (
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
+                                    {Object.entries(uploadProgress)
+                                        .filter(([fileId]) => !fileId.includes('arrival'))
+                                        .map(([fileId, progress]) => (
+                                            <Box key={fileId} sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <Typography sx={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                                        Uploading... {Math.round(progress)}%
+                                                    </Typography>
+                                                </Box>
+                                                <LinearProgress 
+                                                    variant="determinate" 
+                                                    value={progress} 
+                                                    sx={{
+                                                        height: 6,
+                                                        borderRadius: 3,
+                                                        backgroundColor: 'rgba(var(--border-rgb), 0.2)',
+                                                        '& .MuiLinearProgress-bar': {
+                                                            backgroundColor: 'var(--accent-gold)',
+                                                        },
+                                                    }}
+                                                />
+                                            </Box>
+                                        ))}
+                                </Box>
+                            )}
+
+>>>>>>> 90e9bd4 (Fix multiple photo uploads with compression and progress bars)
                             {vehiclePhotos.length > 0 && (
                                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)', md: 'repeat(5, 1fr)' }, gap: 2 }}>
                                     {vehiclePhotos.map((photo, index) => (
@@ -660,7 +818,11 @@ export default function EditShipmentPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => removePhoto(index, false)}
+<<<<<<< HEAD
                                                 className="absolute top-2 right-2 bg-red-500 rounded-full p-1 hover:bg-red-600 transition-colors"
+=======
+                                                className="absolute top-2 right-2 bg-red-500 rounded-full p-1 hover:bg-red-600 transition-colors z-10"
+>>>>>>> 90e9bd4 (Fix multiple photo uploads with compression and progress bars)
                                             >
                                                 <X className="w-3 h-3 text-white" />
                                             </button>
@@ -701,6 +863,7 @@ export default function EditShipmentPage() {
                                     disabled={uploading}
                                 />
                                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, py: 4 }}>
+<<<<<<< HEAD
                                     {uploading ? (
                                         <Loader2 className="w-8 h-8 animate-spin text-[var(--accent-gold)]" />
                                     ) : (
@@ -712,6 +875,58 @@ export default function EditShipmentPage() {
                                 </Box>
                             </label>
 
+=======
+                                    {Array.from(uploadingFiles).some(id => id.includes('arrival')) ? (
+                                        <>
+                                            <Loader2 className="w-8 h-8 animate-spin text-[var(--accent-gold)]" />
+                                            <Typography variant="body2" color="text.secondary">
+                                                Uploading {Array.from(uploadingFiles).filter(id => id.includes('arrival')).length} photo{Array.from(uploadingFiles).filter(id => id.includes('arrival')).length !== 1 ? 's' : ''}...
+                                            </Typography>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Upload className="w-8 h-8 text-[var(--text-secondary)]" />
+                                            <Typography variant="body2" color="text.secondary">
+                                                Click to upload arrival photos
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                                                PNG, JPG, WebP up to 10MB (Multiple files supported, auto-compressed)
+                                            </Typography>
+                                        </>
+                                    )}
+                                </Box>
+                            </label>
+
+                            {/* Upload Progress Indicators for Arrival Photos */}
+                            {Object.keys(uploadProgress).filter(id => id.includes('arrival')).length > 0 && (
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
+                                    {Object.entries(uploadProgress)
+                                        .filter(([fileId]) => fileId.includes('arrival'))
+                                        .map(([fileId, progress]) => (
+                                            <Box key={fileId} sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <Typography sx={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                                        Uploading... {Math.round(progress)}%
+                                                    </Typography>
+                                                </Box>
+                                                <LinearProgress 
+                                                    variant="determinate" 
+                                                    value={progress} 
+                                                    sx={{
+                                                        height: 6,
+                                                        borderRadius: 3,
+                                                        backgroundColor: 'rgba(var(--border-rgb), 0.2)',
+                                                        '& .MuiLinearProgress-bar': {
+                                                            backgroundColor: 'var(--accent-gold)',
+                                                        },
+                                                    }}
+                                                />
+                                            </Box>
+                                        ))}
+                                </Box>
+                            )}
+
+>>>>>>> 90e9bd4 (Fix multiple photo uploads with compression and progress bars)
                             {arrivalPhotos.length > 0 && (
                                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)', md: 'repeat(5, 1fr)' }, gap: 2 }}>
                                     {arrivalPhotos.map((photo, index) => (
@@ -720,7 +935,11 @@ export default function EditShipmentPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => removePhoto(index, true)}
+<<<<<<< HEAD
                                                 className="absolute top-2 right-2 bg-red-500 rounded-full p-1 hover:bg-red-600 transition-colors"
+=======
+                                                className="absolute top-2 right-2 bg-red-500 rounded-full p-1 hover:bg-red-600 transition-colors z-10"
+>>>>>>> 90e9bd4 (Fix multiple photo uploads with compression and progress bars)
                                             >
                                                 <X className="w-3 h-3 text-white" />
                                             </button>
