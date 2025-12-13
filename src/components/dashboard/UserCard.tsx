@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { User, Eye, EyeOff, Copy, Check, Package } from 'lucide-react';
+import { User, Eye, EyeOff, Copy, Check, Package, MapPin } from 'lucide-react';
 import { Box, Typography, IconButton, Slide } from '@mui/material';
 import { Button } from '@/components/design-system';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -12,6 +12,9 @@ interface UserData {
   name: string | null;
   email: string;
   role: string;
+  phone?: string | null;
+  city?: string | null;
+  country?: string | null;
   createdAt?: string;
   _count?: {
     shipments: number;
@@ -149,6 +152,20 @@ export default function UserCard({
             </Typography>
           </Box>
         </Box>
+
+        {(user.city || user.country) && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ minWidth: 90 }}>
+              Location
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <MapPin style={{ width: 14, height: 14, color: 'var(--text-secondary)' }} />
+              <Typography variant="body2" color="text.primary">
+                {[user.city, user.country].filter(Boolean).join(', ')}
+              </Typography>
+            </Box>
+          </Box>
+        )}
 
         {user.createdAt && (
           <Box sx={{ mt: 1, pt: 1, borderTop: '1px solid rgba(255,255,255,0.03)' }}>

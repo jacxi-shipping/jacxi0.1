@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { ArrowLeft, Save, Loader2, AlertCircle } from 'lucide-react';
-import { Box, Typography, Alert } from '@mui/material';
+import { Box, Typography, Alert, Tabs, Tab } from '@mui/material';
 import { 
   DashboardSurface, 
   DashboardPanel 
@@ -39,6 +39,11 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
   const { data: session, status } = useSession();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState(0);
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
+  };
 
   const {
     register,
@@ -134,77 +139,92 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
           </Alert>
         )}
 
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+          <Tabs value={activeTab} onChange={handleTabChange} aria-label="user edit tabs">
+            <Tab label="Profile" sx={{ textTransform: 'none', fontWeight: 600 }} />
+            <Tab label="Account" sx={{ textTransform: 'none', fontWeight: 600 }} />
+          </Tabs>
+        </Box>
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            label="Full Name"
-            placeholder="John Doe"
-            error={!!errors.name}
-            helperText={errors.name?.message}
-            {...register('name')}
-          />
+          <div hidden={activeTab !== 0}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <FormField
+                label="Full Name"
+                placeholder="John Doe"
+                error={!!errors.name}
+                helperText={errors.name?.message}
+                {...register('name')}
+              />
 
-          <FormField
-            label="Email Address"
-            placeholder="john@example.com"
-            type="email"
-            error={!!errors.email}
-            helperText={errors.email?.message}
-            {...register('email')}
-          />
+              <FormField
+                label="Phone Number"
+                placeholder="+1 (555) 000-0000"
+                error={!!errors.phone}
+                helperText={errors.phone?.message}
+                {...register('phone')}
+              />
 
-          <FormField
-            label="Phone Number"
-            placeholder="+1 (555) 000-0000"
-            error={!!errors.phone}
-            helperText={errors.phone?.message}
-            {...register('phone')}
-          />
+              <FormField
+                label="Address"
+                placeholder="123 Main St"
+                error={!!errors.address}
+                helperText={errors.address?.message}
+                {...register('address')}
+              />
 
-          <FormField
-            label="Address"
-            placeholder="123 Main St"
-            error={!!errors.address}
-            helperText={errors.address?.message}
-            {...register('address')}
-          />
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+                <FormField
+                  label="City"
+                  placeholder="New York"
+                  error={!!errors.city}
+                  helperText={errors.city?.message}
+                  {...register('city')}
+                />
 
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
-            <FormField
-              label="City"
-              placeholder="New York"
-              error={!!errors.city}
-              helperText={errors.city?.message}
-              {...register('city')}
-            />
+                <FormField
+                  label="Country"
+                  placeholder="United States"
+                  error={!!errors.country}
+                  helperText={errors.country?.message}
+                  {...register('country')}
+                />
+              </Box>
+            </Box>
+          </div>
 
-            <FormField
-              label="Country"
-              placeholder="United States"
-              error={!!errors.country}
-              helperText={errors.country?.message}
-              {...register('country')}
-            />
-          </Box>
+          <div hidden={activeTab !== 1}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <FormField
+                label="Email Address"
+                placeholder="john@example.com"
+                type="email"
+                error={!!errors.email}
+                helperText={errors.email?.message}
+                {...register('email')}
+              />
 
-          <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Role</Typography>
-            <select
-              {...register('role')}
-              className="w-full p-2.5 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent-gold)] focus:border-transparent outline-none transition-all"
-            >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-              <option value="manager">Manager</option>
-              <option value="customer_service">Customer Service</option>
-            </select>
-            {errors.role && (
-              <Typography color="error" variant="caption" sx={{ mt: 0.5, display: 'block' }}>
-                {errors.role.message}
-              </Typography>
-            )}
-          </Box>
+              <Box>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Role</Typography>
+                <select
+                  {...register('role')}
+                  className="w-full p-2.5 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent-gold)] focus:border-transparent outline-none transition-all"
+                >
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                  <option value="manager">Manager</option>
+                  <option value="customer_service">Customer Service</option>
+                </select>
+                {errors.role && (
+                  <Typography color="error" variant="caption" sx={{ mt: 0.5, display: 'block' }}>
+                    {errors.role.message}
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          </div>
 
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, pt: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, pt: 2, borderTop: '1px solid var(--border)' }}>
             <Link href={`/dashboard/users/${id}`} style={{ textDecoration: 'none' }}>
               <Button variant="ghost" type="button">Cancel</Button>
             </Link>
