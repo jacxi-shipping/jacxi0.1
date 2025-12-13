@@ -8,7 +8,7 @@ import { AdminRoute } from '@/components/auth/AdminRoute';
 import Section from '@/components/layout/Section';
 import { ArrowLeft, Download, Loader2, Ship, Anchor, Calendar, MapPin, AlertCircle, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Stepper, Step, StepLabel, Box } from '@mui/material';
-import { Breadcrumbs, Button, toast, EmptyState, SkeletonCard, SkeletonTable, Tooltip, StatusBadge } from '@/components/design-system';
+import { Breadcrumbs, Button, toast, EmptyState, SkeletonCard, SkeletonTable, Tooltip, StatusBadge, FormField } from '@/components/design-system';
 
 const steps = ['Basic Info', 'Shipping Details', 'Ports', 'Dates', 'Additional Info'];
 
@@ -260,26 +260,25 @@ export default function NewContainerPage() {
               </CardHeader>
               <CardContent className="p-4 sm:p-6 space-y-4">
                 <div className="md:col-span-2">
-                  <label htmlFor="containerNumber" className="block text-xs sm:text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-2">
-                    Container Number <span className="text-red-400">*</span>
-                  </label>
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <input
-                      type="text"
-                      id="containerNumber"
-                      name="containerNumber"
-                      value={formData.containerNumber}
-                      onChange={handleChange}
-                      required
-                      className="flex-1 px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:ring-2 focus:ring-cyan-500/40 focus:border-transparent"
-                      placeholder="e.g., ABCU1234567"
-                    />
+                  <div className="flex flex-col sm:flex-row gap-3 items-end">
+                    <Box sx={{ flex: 1 }}>
+                      <FormField
+                        label="Container Number *"
+                        id="containerNumber"
+                        name="containerNumber"
+                        value={formData.containerNumber}
+                        onChange={handleChange}
+                        required
+                        placeholder="e.g., ABCU1234567"
+                        helperText="Enter container number and click 'Fetch Data' to automatically retrieve shipping information"
+                      />
+                    </Box>
                     <Button
                       type="button"
                       onClick={fetchContainerData}
                       disabled={fetching || !formData.containerNumber.trim()}
                       variant="outline"
-                      className="sm:w-auto w-full border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/10 whitespace-nowrap"
+                      className="sm:w-auto w-full border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/10 whitespace-nowrap mb-6"
                     >
                       {fetching ? (
                         <>
@@ -294,58 +293,37 @@ export default function NewContainerPage() {
                       )}
                     </Button>
                   </div>
-                  <p className="mt-1 text-xs text-[var(--text-secondary)]">
-                    Enter container number and click &quot;Fetch Data&quot; to automatically retrieve shipping information
-                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="trackingNumber" className="block text-xs sm:text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-2">
-                      Tracking Number
-                    </label>
-                    <input
-                      type="text"
-                      id="trackingNumber"
-                      name="trackingNumber"
-                      value={formData.trackingNumber}
-                      onChange={handleChange}
-                      placeholder="Tracking identifier"
-                      className="w-full px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:ring-2 focus:ring-cyan-500/40 focus:border-transparent"
-                    />
-                  </div>
+                  <FormField
+                    label="Tracking Number"
+                    id="trackingNumber"
+                    name="trackingNumber"
+                    value={formData.trackingNumber}
+                    onChange={handleChange}
+                    placeholder="Tracking identifier"
+                  />
 
-                  <div>
-                    <label htmlFor="bookingNumber" className="block text-xs sm:text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-2">
-                      Booking Number
-                    </label>
-                    <input
-                      type="text"
-                      id="bookingNumber"
-                      name="bookingNumber"
-                      value={formData.bookingNumber}
-                      onChange={handleChange}
-                      placeholder="Booking reference"
-                      className="w-full px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:ring-2 focus:ring-cyan-500/40 focus:border-transparent"
-                    />
-                  </div>
+                  <FormField
+                    label="Booking Number"
+                    id="bookingNumber"
+                    name="bookingNumber"
+                    value={formData.bookingNumber}
+                    onChange={handleChange}
+                    placeholder="Booking reference"
+                  />
 
-                  <div>
-                    <label htmlFor="maxCapacity" className="block text-xs sm:text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-2">
-                      Max Capacity (vehicles)
-                    </label>
-                    <input
-                      type="number"
-                      id="maxCapacity"
-                      name="maxCapacity"
-                      value={formData.maxCapacity}
-                      onChange={handleNumberChange}
-                      min="1"
-                      max="20"
-                      placeholder="e.g., 4"
-                      className="w-full px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:ring-2 focus:ring-cyan-500/40 focus:border-transparent"
-                    />
-                  </div>
+                  <FormField
+                    label="Max Capacity (vehicles)"
+                    type="number"
+                    id="maxCapacity"
+                    name="maxCapacity"
+                    value={formData.maxCapacity}
+                    onChange={handleNumberChange}
+                    placeholder="e.g., 4"
+                    inputProps={{ min: 1, max: 20 }}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -362,48 +340,32 @@ export default function NewContainerPage() {
               </CardHeader>
               <CardContent className="p-4 sm:p-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="vesselName" className="block text-xs sm:text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-2">
-                      Vessel Name
-                    </label>
-                    <input
-                      type="text"
-                      id="vesselName"
-                      name="vesselName"
-                      value={formData.vesselName}
-                      onChange={handleChange}
-                      placeholder="e.g., MSC GULSUN"
-                      className="w-full px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:ring-2 focus:ring-cyan-500/40 focus:border-transparent"
-                    />
-                  </div>
+                  <FormField
+                    label="Vessel Name"
+                    id="vesselName"
+                    name="vesselName"
+                    value={formData.vesselName}
+                    onChange={handleChange}
+                    placeholder="e.g., MSC GULSUN"
+                  />
 
-                  <div>
-                    <label htmlFor="voyageNumber" className="block text-xs sm:text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-2">
-                      Voyage Number
-                    </label>
-                    <input
-                      type="text"
-                      id="voyageNumber"
-                      name="voyageNumber"
-                      value={formData.voyageNumber}
-                      onChange={handleChange}
-                      placeholder="e.g., V123"
-                      className="w-full px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:ring-2 focus:ring-cyan-500/40 focus:border-transparent"
-                    />
-                  </div>
+                  <FormField
+                    label="Voyage Number"
+                    id="voyageNumber"
+                    name="voyageNumber"
+                    value={formData.voyageNumber}
+                    onChange={handleChange}
+                    placeholder="e.g., V123"
+                  />
 
                   <div className="md:col-span-2">
-                    <label htmlFor="shippingLine" className="block text-xs sm:text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-2">
-                      Shipping Line
-                    </label>
-                    <input
-                      type="text"
+                    <FormField
+                      label="Shipping Line"
                       id="shippingLine"
                       name="shippingLine"
                       value={formData.shippingLine}
                       onChange={handleChange}
                       placeholder="e.g., Maersk Line, MSC, CMA CGM, COSCO"
-                      className="w-full px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:ring-2 focus:ring-cyan-500/40 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -422,35 +384,23 @@ export default function NewContainerPage() {
               </CardHeader>
               <CardContent className="p-4 sm:p-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="loadingPort" className="block text-xs sm:text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-2">
-                      Loading Port
-                    </label>
-                    <input
-                      type="text"
-                      id="loadingPort"
-                      name="loadingPort"
-                      value={formData.loadingPort}
-                      onChange={handleChange}
-                      placeholder="e.g., Shanghai, China"
-                      className="w-full px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:ring-2 focus:ring-cyan-500/40 focus:border-transparent"
-                    />
-                  </div>
+                  <FormField
+                    label="Loading Port"
+                    id="loadingPort"
+                    name="loadingPort"
+                    value={formData.loadingPort}
+                    onChange={handleChange}
+                    placeholder="e.g., Shanghai, China"
+                  />
 
-                  <div>
-                    <label htmlFor="destinationPort" className="block text-xs sm:text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-2">
-                      Destination Port
-                    </label>
-                    <input
-                      type="text"
-                      id="destinationPort"
-                      name="destinationPort"
-                      value={formData.destinationPort}
-                      onChange={handleChange}
-                      placeholder="e.g., Los Angeles, USA"
-                      className="w-full px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:ring-2 focus:ring-cyan-500/40 focus:border-transparent"
-                    />
-                  </div>
+                  <FormField
+                    label="Destination Port"
+                    id="destinationPort"
+                    name="destinationPort"
+                    value={formData.destinationPort}
+                    onChange={handleChange}
+                    placeholder="e.g., Los Angeles, USA"
+                  />
                 </div>
 
                 <div>
@@ -459,19 +409,20 @@ export default function NewContainerPage() {
                   </label>
                   <div className="space-y-2">
                     {formData.transshipmentPorts.map((port, index) => (
-                      <div key={index} className="flex gap-2">
-                        <input
-                          type="text"
-                          value={port}
-                          onChange={(e) => updateTransshipmentPort(index, e.target.value)}
-                          className="flex-1 px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:ring-2 focus:ring-cyan-500/40 focus:border-transparent"
-                          placeholder={`Transshipment port ${index + 1}`}
-                        />
+                      <div key={index} className="flex gap-2 items-end">
+                        <Box sx={{ flex: 1 }}>
+                          <FormField
+                            label={`Port ${index + 1}`}
+                            value={port}
+                            onChange={(e) => updateTransshipmentPort(index, e.target.value)}
+                            placeholder={`Transshipment port ${index + 1}`}
+                          />
+                        </Box>
                         <Button
                           type="button"
                           onClick={() => removeTransshipmentPort(index)}
                           variant="outline"
-                          className="border-red-500/40 text-red-300 hover:bg-red-500/10"
+                          className="border-red-500/40 text-red-300 hover:bg-red-500/10 mb-1"
                         >
                           Remove
                         </Button>
@@ -502,47 +453,35 @@ export default function NewContainerPage() {
               </CardHeader>
               <CardContent className="p-4 sm:p-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label htmlFor="loadingDate" className="block text-xs sm:text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-2">
-                      Loading Date
-                    </label>
-                    <input
-                      type="date"
-                      id="loadingDate"
-                      name="loadingDate"
-                      value={formData.loadingDate}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-[var(--text-primary)] focus:ring-2 focus:ring-cyan-500/40 focus:border-transparent"
-                    />
-                  </div>
+                  <FormField
+                    label="Loading Date"
+                    type="date"
+                    id="loadingDate"
+                    name="loadingDate"
+                    value={formData.loadingDate}
+                    onChange={handleChange}
+                    InputLabelProps={{ shrink: true }}
+                  />
 
-                  <div>
-                    <label htmlFor="departureDate" className="block text-xs sm:text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-2">
-                      Departure Date
-                    </label>
-                    <input
-                      type="date"
-                      id="departureDate"
-                      name="departureDate"
-                      value={formData.departureDate}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-[var(--text-primary)] focus:ring-2 focus:ring-cyan-500/40 focus:border-transparent"
-                    />
-                  </div>
+                  <FormField
+                    label="Departure Date"
+                    type="date"
+                    id="departureDate"
+                    name="departureDate"
+                    value={formData.departureDate}
+                    onChange={handleChange}
+                    InputLabelProps={{ shrink: true }}
+                  />
 
-                  <div>
-                    <label htmlFor="estimatedArrival" className="block text-xs sm:text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-2">
-                      Estimated Arrival
-                    </label>
-                    <input
-                      type="date"
-                      id="estimatedArrival"
-                      name="estimatedArrival"
-                      value={formData.estimatedArrival}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-[var(--text-primary)] focus:ring-2 focus:ring-cyan-500/40 focus:border-transparent"
-                    />
-                  </div>
+                  <FormField
+                    label="Estimated Arrival"
+                    type="date"
+                    id="estimatedArrival"
+                    name="estimatedArrival"
+                    value={formData.estimatedArrival}
+                    onChange={handleChange}
+                    InputLabelProps={{ shrink: true }}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -555,20 +494,16 @@ export default function NewContainerPage() {
                 <CardTitle className="text-base sm:text-lg font-bold text-[var(--text-primary)]">Additional Information</CardTitle>
               </CardHeader>
               <CardContent className="p-4 sm:p-6 space-y-4">
-                <div>
-                  <label htmlFor="notes" className="block text-xs sm:text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-2">
-                    Notes
-                  </label>
-                  <textarea
-                    id="notes"
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleChange}
-                    rows={4}
-                    className="w-full px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:ring-2 focus:ring-cyan-500/40 focus:border-transparent resize-none"
-                    placeholder="Any additional notes or special instructions..."
-                  />
-                </div>
+                <FormField
+                  label="Notes"
+                  id="notes"
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleChange}
+                  placeholder="Any additional notes or special instructions..."
+                  multiline
+                  rows={4}
+                />
 
                 <div className="flex items-center gap-2">
                   <input
