@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Box, TextField, Grid, Avatar, Divider } from '@mui/material';
+import { Box, Avatar, Divider } from '@mui/material';
 import {
 	User,
 	Mail,
@@ -13,9 +13,10 @@ import {
 	Calendar,
 	Save,
 	RotateCcw,
+	Image as ImageIcon,
 } from 'lucide-react';
 import { DashboardSurface, DashboardPanel, DashboardGrid } from '@/components/dashboard/DashboardSurface';
-import { PageHeader, Button, Breadcrumbs, toast, LoadingState, EmptyState, StatsCard , DashboardPageSkeleton, DetailPageSkeleton, FormPageSkeleton} from '@/components/design-system';
+import { PageHeader, Button, Breadcrumbs, toast, EmptyState, StatsCard, DashboardPageSkeleton, FormField } from '@/components/design-system';
 
 type ProfileFormState = {
 	name: string;
@@ -23,6 +24,7 @@ type ProfileFormState = {
 	address: string;
 	city: string;
 	country: string;
+	image: string;
 };
 
 type ProfileResponse = {
@@ -30,6 +32,7 @@ type ProfileResponse = {
 		id: string;
 		name: string | null;
 		email: string;
+		image: string | null;
 		role: string;
 		phone: string | null;
 		address: string | null;
@@ -46,6 +49,7 @@ const initialFormState: ProfileFormState = {
 	address: '',
 	city: '',
 	country: '',
+	image: '',
 };
 
 export default function ProfilePage() {
@@ -79,6 +83,7 @@ export default function ProfilePage() {
 					address: payload.user.address ?? '',
 					city: payload.user.city ?? '',
 					country: payload.user.country ?? '',
+					image: payload.user.image ?? '',
 				});
 			} catch (error) {
 				const message = error instanceof Error ? error.message : 'Unable to fetch profile information';
@@ -122,6 +127,7 @@ export default function ProfilePage() {
 				address: payload.user.address ?? '',
 				city: payload.user.city ?? '',
 				country: payload.user.country ?? '',
+				image: payload.user.image ?? '',
 			});
 			toast.success('Profile updated successfully');
 		} catch (error) {
@@ -140,6 +146,7 @@ export default function ProfilePage() {
 			address: profile.address ?? '',
 			city: profile.city ?? '',
 			country: profile.country ?? '',
+			image: profile.image ?? '',
 		});
 		toast.info('Form reset to saved values');
 	};
@@ -226,6 +233,7 @@ export default function ProfilePage() {
 													fontSize: '2rem',
 													fontWeight: 600,
 												}}
+												src={profile.image || undefined}
 											>
 												{(profile.name || profile.email)[0].toUpperCase()}
 											</Avatar>
@@ -244,80 +252,67 @@ export default function ProfilePage() {
 
 									{/* Name & Phone */}
 									<Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
-										<TextField
-											fullWidth
+										<FormField
 											label="Full Name"
 											name="name"
 											value={form.name}
 											onChange={handleChange}
 											placeholder="Enter your full name"
-											variant="outlined"
-											size="small"
-											InputProps={{
-												startAdornment: <User className="w-4 h-4 mr-2 text-[var(--text-secondary)]" />,
-											}}
+											leftIcon={<User className="w-4 h-4 text-[var(--text-secondary)]" />}
 										/>
 
-										<TextField
-											fullWidth
+										<FormField
 											label="Phone Number"
 											name="phone"
 											value={form.phone}
 											onChange={handleChange}
 											placeholder="+1 (555) 123-4567"
-											variant="outlined"
-											size="small"
-											InputProps={{
-												startAdornment: <Phone className="w-4 h-4 mr-2 text-[var(--text-secondary)]" />,
-											}}
+											leftIcon={<Phone className="w-4 h-4 text-[var(--text-secondary)]" />}
 										/>
 									</Box>
 
 									{/* Address */}
 									<Box>
-										<TextField
-											fullWidth
+										<FormField
 											label="Address"
 											name="address"
 											value={form.address}
 											onChange={handleChange}
 											placeholder="123 Main Street"
-											variant="outlined"
-											size="small"
-											InputProps={{
-												startAdornment: <MapPin className="w-4 h-4 mr-2 text-[var(--text-secondary)]" />,
-											}}
+											leftIcon={<MapPin className="w-4 h-4 text-[var(--text-secondary)]" />}
 										/>
 									</Box>
 
 									{/* City & Country */}
 									<Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
-										<TextField
-											fullWidth
+										<FormField
 											label="City"
 											name="city"
 											value={form.city}
 											onChange={handleChange}
 											placeholder="New York"
-											variant="outlined"
-											size="small"
-											InputProps={{
-												startAdornment: <MapPin className="w-4 h-4 mr-2 text-[var(--text-secondary)]" />,
-											}}
+											leftIcon={<MapPin className="w-4 h-4 text-[var(--text-secondary)]" />}
 										/>
 
-										<TextField
-											fullWidth
+										<FormField
 											label="Country"
 											name="country"
 											value={form.country}
 											onChange={handleChange}
 											placeholder="United States"
-											variant="outlined"
-											size="small"
-											InputProps={{
-												startAdornment: <MapPin className="w-4 h-4 mr-2 text-[var(--text-secondary)]" />,
-											}}
+											leftIcon={<MapPin className="w-4 h-4 text-[var(--text-secondary)]" />}
+										/>
+									</Box>
+
+									{/* Image URL */}
+									<Box>
+										<FormField
+											label="Profile Image URL"
+											name="image"
+											value={form.image}
+											onChange={handleChange}
+											placeholder="https://example.com/image.jpg"
+											leftIcon={<ImageIcon className="w-4 h-4 text-[var(--text-secondary)]" />}
 										/>
 									</Box>
 

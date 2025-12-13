@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/db';
 import { auth } from '@/lib/auth';
-
-const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -31,6 +29,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         email: true,
         role: true,
         phone: true,
+        address: true,
+        city: true,
+        country: true,
         createdAt: true,
         updatedAt: true,
         shipments: {
@@ -94,7 +95,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     const body = await request.json();
-    const { name, email, role, phone } = body;
+    const { name, email, role, phone, address, city, country } = body;
 
     // Validate email if changed (check uniqueness)
     if (email) {
@@ -116,6 +117,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         email,
         role, // only if provided
         phone,
+        address,
+        city,
+        country,
       },
     });
 

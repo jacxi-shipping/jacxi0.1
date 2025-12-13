@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Prisma, PrismaClient, TitleStatus } from '@prisma/client';
+import { Prisma, TitleStatus } from '@prisma/client';
 import { auth } from '@/lib/auth';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/db';
 
 type UpdateShipmentPayload = {
   userId?: string;

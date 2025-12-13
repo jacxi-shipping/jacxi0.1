@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import bcrypt from 'bcryptjs';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,7 +23,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, email, password } = await request.json();
+    const { name, email, password, role, phone, address, city, country } = await request.json();
 
     // Validate input
     if (!name || !email || !password) {
@@ -56,7 +54,11 @@ export async function POST(request: NextRequest) {
         name,
         email,
         passwordHash: hashedPassword,
-        role: 'user',
+        role: role || 'user',
+        phone,
+        address,
+        city,
+        country,
       },
     });
 

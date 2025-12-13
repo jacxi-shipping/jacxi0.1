@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/db';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const prisma = new PrismaClient();
-
 // Note: Items model has been removed in the new architecture
 // Shipments are now directly assigned to Containers
 // This endpoint is kept for backward compatibility but returns deprecation notice

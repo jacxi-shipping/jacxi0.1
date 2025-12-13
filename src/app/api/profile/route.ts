@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { auth } from '@/lib/auth';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/db';
 
 const sanitizeString = (value: unknown) => {
 	if (typeof value !== 'string') return undefined;
@@ -24,6 +22,7 @@ export async function GET() {
 				id: true,
 				name: true,
 				email: true,
+				image: true,
 				role: true,
 				phone: true,
 				address: true,
@@ -57,12 +56,14 @@ export async function PUT(request: NextRequest) {
 		const updates: Record<string, string | null> = {};
 
 		const name = sanitizeString(payload.name);
+		const image = sanitizeString(payload.image);
 		const phone = sanitizeString(payload.phone);
 		const address = sanitizeString(payload.address);
 		const city = sanitizeString(payload.city);
 		const country = sanitizeString(payload.country);
 
 		if (name !== undefined) updates.name = name;
+		if (image !== undefined) updates.image = image;
 		if (phone !== undefined) updates.phone = phone;
 		if (address !== undefined) updates.address = address;
 		if (city !== undefined) updates.city = city;
@@ -79,6 +80,7 @@ export async function PUT(request: NextRequest) {
 				id: true,
 				name: true,
 				email: true,
+				image: true,
 				role: true,
 				phone: true,
 				address: true,

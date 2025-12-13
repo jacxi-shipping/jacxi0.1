@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/db';
 import { auth } from '@/lib/auth';
-
-const prisma = new PrismaClient();
 
 // Temporary type until migration
 type TempDocumentCategory = 'INVOICE' | 'BILL_OF_LADING' | 'CUSTOMS' | 'INSURANCE' | 'TITLE' | 'INSPECTION_REPORT' | 'PHOTO' | 'CONTRACT' | 'OTHER';
