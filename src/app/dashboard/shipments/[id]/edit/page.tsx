@@ -19,15 +19,6 @@ import {
   Save,
   AlertCircle
 } from 'lucide-react';
-<<<<<<< HEAD
-import { Box, Typography } from '@mui/material';
-
-import { DashboardSurface, DashboardPanel } from '@/components/dashboard/DashboardSurface';
-import { PageHeader, Button, FormField, Breadcrumbs, toast, EmptyState, FormPageSkeleton } from '@/components/design-system';
-import { shipmentSchema, type ShipmentFormData } from '@/lib/validations/shipment';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
-
-=======
 import { Box, Typography, LinearProgress } from '@mui/material';
 
 import { DashboardSurface, DashboardPanel } from '@/components/dashboard/DashboardSurface';
@@ -35,8 +26,6 @@ import { PageHeader, Button, FormField, Breadcrumbs, toast, EmptyState, FormPage
 import { shipmentSchema, type ShipmentFormData } from '@/lib/validations/shipment';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { compressImage, isValidImageFile, formatFileSize } from '@/lib/utils/image-compression';
-
->>>>>>> 90e9bd4 (Fix multiple photo uploads with compression and progress bars)
 interface UserOption {
   id: string;
   name: string | null;
@@ -65,11 +54,8 @@ export default function EditShipmentPage() {
   const [vehiclePhotos, setVehiclePhotos] = useState<string[]>([]);
   const [arrivalPhotos, setArrivalPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
-<<<<<<< HEAD
-=======
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
   const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
->>>>>>> 90e9bd4 (Fix multiple photo uploads with compression and progress bars)
   const [decodingVin, setDecodingVin] = useState(false);
 
   const isAdmin = useMemo(() => session?.user?.role === 'admin', [session]);
@@ -746,19 +732,6 @@ export default function EditShipmentPage() {
                                     disabled={uploading}
                                 />
                                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, py: 4 }}>
-<<<<<<< HEAD
-                                    {uploading ? (
-                                        <Loader2 className="w-8 h-8 animate-spin text-[var(--accent-gold)]" />
-                                    ) : (
-                                        <Upload className="w-8 h-8 text-[var(--text-secondary)]" />
-                                    )}
-                                    <Typography variant="body2" color="text.secondary">
-                                        Click to upload vehicle photos
-                                    </Typography>
-                                </Box>
-                            </label>
-
-=======
                                     {Array.from(uploadingFiles).some(id => !id.includes('arrival')) ? (
                                         <>
                                             <Loader2 className="w-8 h-8 animate-spin text-[var(--accent-gold)]" />
@@ -809,7 +782,6 @@ export default function EditShipmentPage() {
                                 </Box>
                             )}
 
->>>>>>> 90e9bd4 (Fix multiple photo uploads with compression and progress bars)
                             {vehiclePhotos.length > 0 && (
                                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)', md: 'repeat(5, 1fr)' }, gap: 2 }}>
                                     {vehiclePhotos.map((photo, index) => (
@@ -818,11 +790,7 @@ export default function EditShipmentPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => removePhoto(index, false)}
-<<<<<<< HEAD
-                                                className="absolute top-2 right-2 bg-red-500 rounded-full p-1 hover:bg-red-600 transition-colors"
-=======
                                                 className="absolute top-2 right-2 bg-red-500 rounded-full p-1 hover:bg-red-600 transition-colors z-10"
->>>>>>> 90e9bd4 (Fix multiple photo uploads with compression and progress bars)
                                             >
                                                 <X className="w-3 h-3 text-white" />
                                             </button>
@@ -863,19 +831,6 @@ export default function EditShipmentPage() {
                                     disabled={uploading}
                                 />
                                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, py: 4 }}>
-<<<<<<< HEAD
-                                    {uploading ? (
-                                        <Loader2 className="w-8 h-8 animate-spin text-[var(--accent-gold)]" />
-                                    ) : (
-                                        <Upload className="w-8 h-8 text-[var(--text-secondary)]" />
-                                    )}
-                                    <Typography variant="body2" color="text.secondary">
-                                        Click to upload arrival photos
-                                    </Typography>
-                                </Box>
-                            </label>
-
-=======
                                     {Array.from(uploadingFiles).some(id => id.includes('arrival')) ? (
                                         <>
                                             <Loader2 className="w-8 h-8 animate-spin text-[var(--accent-gold)]" />
@@ -926,7 +881,6 @@ export default function EditShipmentPage() {
                                 </Box>
                             )}
 
->>>>>>> 90e9bd4 (Fix multiple photo uploads with compression and progress bars)
                             {arrivalPhotos.length > 0 && (
                                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)', md: 'repeat(5, 1fr)' }, gap: 2 }}>
                                     {arrivalPhotos.map((photo, index) => (
@@ -935,11 +889,7 @@ export default function EditShipmentPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => removePhoto(index, true)}
-<<<<<<< HEAD
-                                                className="absolute top-2 right-2 bg-red-500 rounded-full p-1 hover:bg-red-600 transition-colors"
-=======
                                                 className="absolute top-2 right-2 bg-red-500 rounded-full p-1 hover:bg-red-600 transition-colors z-10"
->>>>>>> 90e9bd4 (Fix multiple photo uploads with compression and progress bars)
                                             >
                                                 <X className="w-3 h-3 text-white" />
                                             </button>
