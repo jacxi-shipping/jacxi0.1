@@ -84,7 +84,8 @@ export default function NewShipmentPage() {
 	useEffect(() => {
 		const fetchUsers = async () => {
 			try {
-				const response = await fetch('/api/users');
+				// Fetch all users by using a large pageSize
+				const response = await fetch('/api/users?pageSize=1000');
 				if (response.ok) {
 					const data = await response.json();
 					setUsers(data.users);
@@ -105,7 +106,8 @@ export default function NewShipmentPage() {
 			const fetchContainers = async () => {
 				setLoadingContainers(true);
 				try {
-					const response = await fetch('/api/containers?status=active');
+					// Fetch all active containers by using a large limit
+					const response = await fetch('/api/containers?status=active&limit=1000');
 					if (response.ok) {
 						const data = await response.json();
 						setContainers(data.containers);

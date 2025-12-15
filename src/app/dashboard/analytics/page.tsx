@@ -238,7 +238,40 @@ export default function AnalyticsPage() {
     );
   }
 
-  if (!data) return null;
+  // If no data and no error, show error state (shouldn't happen but handle gracefully)
+  if (!data) {
+    return (
+      <ProtectedRoute>
+        <DashboardSurface>
+          <Box sx={{ px: 2, pt: 2 }}>
+            <Breadcrumbs />
+          </Box>
+          <Box
+            sx={{
+              mx: 2,
+              my: 4,
+              borderRadius: 2,
+              border: '1px solid var(--error)',
+              background: 'rgba(var(--error-rgb), 0.08)',
+              p: 4,
+              color: 'var(--error)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 2,
+            }}
+          >
+            <AlertTriangle size={48} />
+            <Typography variant="h6" fontWeight={600}>No data available</Typography>
+            <Typography>Unable to load analytics data. Please try refreshing the page.</Typography>
+            <Button variant="outline" onClick={handleRefresh}>
+              Refresh
+            </Button>
+          </Box>
+        </DashboardSurface>
+      </ProtectedRoute>
+    );
+  }
 
   const headerMeta = [
     { label: 'Shipments', value: data?.summary?.totalShipments ?? 0 },

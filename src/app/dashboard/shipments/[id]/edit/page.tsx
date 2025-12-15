@@ -107,8 +107,8 @@ export default function EditShipmentPage() {
       try {
         setLoadingData(true);
         
-        // Fetch users
-        const usersResponse = await fetch('/api/users');
+        // Fetch users - fetch all users by using a large pageSize
+        const usersResponse = await fetch('/api/users?pageSize=1000');
         if (usersResponse.ok) {
           const data = await usersResponse.json();
           setUsers(data.users || []);
@@ -171,7 +171,8 @@ export default function EditShipmentPage() {
   const fetchContainers = async () => {
     setLoadingContainers(true);
     try {
-      const response = await fetch('/api/containers?status=active');
+      // Fetch all active containers by using a large limit
+      const response = await fetch('/api/containers?status=active&limit=1000');
       if (response.ok) {
         const data = await response.json();
         setContainers(data.containers);
