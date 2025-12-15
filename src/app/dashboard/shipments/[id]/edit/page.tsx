@@ -19,7 +19,7 @@ import {
   Save,
   AlertCircle
 } from 'lucide-react';
-import { Box, Typography, LinearProgress } from '@mui/material';
+import { Box, Typography, LinearProgress, Autocomplete, TextField } from '@mui/material';
 
 import { DashboardSurface, DashboardPanel } from '@/components/dashboard/DashboardSurface';
 import { PageHeader, Button, FormField, Breadcrumbs, toast, EmptyState, FormPageSkeleton } from '@/components/design-system';
@@ -602,31 +602,50 @@ export default function EditShipmentPage() {
                         <Typography variant="body2">Loading customers...</Typography>
                     </Box>
                   ) : (
-                    <select
-                        id="userId"
-                        {...register('userId')}
-                        style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        borderRadius: '16px',
-                        border: errors.userId ? '2px solid var(--error)' : '1px solid rgba(var(--border-rgb), 0.9)',
-                        backgroundColor: 'var(--background)',
-                        color: 'var(--text-primary)',
-                        fontSize: '0.875rem',
-                        }}
-                    >
-                        <option value="">Select customer</option>
-                        {users.map((user) => (
-                        <option key={user.id} value={user.id}>
-                            {user.name || user.email}
-                        </option>
-                        ))}
-                    </select>
-                  )}
-                  {errors.userId && (
-                    <Typography sx={{ fontSize: '0.75rem', color: 'var(--error)', mt: 0.5 }}>
-                      {errors.userId.message}
-                    </Typography>
+                    <Autocomplete
+                      options={users}
+                      getOptionLabel={(option) => option.name || option.email}
+                      value={users.find(u => u.id === watch('userId')) || null}
+                      onChange={(_, newValue) => {
+                        setValue('userId', newValue?.id || '', { shouldValidate: true });
+                      }}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          placeholder="Select customer"
+                          error={!!errors.userId}
+                          helperText={errors.userId?.message}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: '16px',
+                              backgroundColor: 'var(--background)',
+                              '& fieldset': {
+                                borderColor: errors.userId ? 'var(--error)' : 'rgba(var(--border-rgb), 0.9)',
+                              },
+                              '&:hover fieldset': {
+                                borderColor: errors.userId ? 'var(--error)' : 'var(--accent-gold)',
+                              },
+                              '&.Mui-focused fieldset': {
+                                borderColor: errors.userId ? 'var(--error)' : 'var(--accent-gold)',
+                              },
+                            },
+                            '& .MuiInputBase-input': {
+                              color: 'var(--text-primary)',
+                              fontSize: '0.875rem',
+                            },
+                            '& .MuiInputLabel-root': {
+                              color: 'var(--text-secondary)',
+                            },
+                          }}
+                        />
+                      )}
+                      sx={{
+                        '& .MuiAutocomplete-paper': {
+                          backgroundColor: 'var(--panel)',
+                          border: '1px solid var(--border)',
+                        },
+                      }}
+                    />
                   )}
                 </Box>
 
@@ -668,31 +687,52 @@ export default function EditShipmentPage() {
                         <Typography variant="body2">Loading containers...</Typography>
                       </Box>
                     ) : (
-                      <select
-                        id="containerId"
-                        {...register('containerId')}
-                        style={{
-                          width: '100%',
-                          padding: '10px 12px',
-                          borderRadius: '16px',
-                          border: errors.containerId ? '2px solid var(--error)' : '1px solid rgba(var(--border-rgb), 0.9)',
-                          backgroundColor: 'var(--background)',
-                          color: 'var(--text-primary)',
-                          fontSize: '0.875rem',
+                      <Autocomplete
+                        options={containers}
+                        getOptionLabel={(option) => 
+                          `${option.containerNumber} - ${option.destinationPort || 'No destination'} (${option.currentCount}/${option.maxCapacity})`
+                        }
+                        value={containers.find(c => c.id === watch('containerId')) || null}
+                        onChange={(_, newValue) => {
+                          setValue('containerId', newValue?.id || '', { shouldValidate: true });
                         }}
-                      >
-                        <option value="">Select a container</option>
-                        {containers.map((container) => (
-                          <option key={container.id} value={container.id}>
-                            {container.containerNumber} - {container.destinationPort || 'No destination'} ({container.currentCount}/{container.maxCapacity})
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                    {errors.containerId && (
-                      <Typography sx={{ fontSize: '0.75rem', color: 'var(--error)', mt: 0.5 }}>
-                        {errors.containerId.message}
-                      </Typography>
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            placeholder="Select a container"
+                            error={!!errors.containerId}
+                            helperText={errors.containerId?.message}
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                borderRadius: '16px',
+                                backgroundColor: 'var(--background)',
+                                '& fieldset': {
+                                  borderColor: errors.containerId ? 'var(--error)' : 'rgba(var(--border-rgb), 0.9)',
+                                },
+                                '&:hover fieldset': {
+                                  borderColor: errors.containerId ? 'var(--error)' : 'var(--accent-gold)',
+                                },
+                                '&.Mui-focused fieldset': {
+                                  borderColor: errors.containerId ? 'var(--error)' : 'var(--accent-gold)',
+                                },
+                              },
+                              '& .MuiInputBase-input': {
+                                color: 'var(--text-primary)',
+                                fontSize: '0.875rem',
+                              },
+                              '& .MuiInputLabel-root': {
+                                color: 'var(--text-secondary)',
+                              },
+                            }}
+                          />
+                        )}
+                        sx={{
+                          '& .MuiAutocomplete-paper': {
+                            backgroundColor: 'var(--panel)',
+                            border: '1px solid var(--border)',
+                          },
+                        }}
+                      />
                     )}
                   </Box>
                 )}
