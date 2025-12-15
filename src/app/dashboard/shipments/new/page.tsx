@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, Upload, X, Loader2, Package, User, DollarSign, FileText, CheckCircle, ArrowRight } from 'lucide-react';
@@ -51,6 +51,14 @@ export default function NewShipmentPage() {
 	const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
 	const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
 	const [decodingVin, setDecodingVin] = useState(false);
+
+	// Calculate overall upload progress
+	const overallProgress = useMemo(() => {
+		const progressValues = Object.values(uploadProgress);
+		if (progressValues.length === 0) return 0;
+		const sum = progressValues.reduce((acc, val) => acc + val, 0);
+		return Math.round(sum / progressValues.length);
+	}, [uploadProgress]);
 
 	const {
 		register,
@@ -713,30 +721,30 @@ export default function NewShipmentPage() {
 									</Box>
 								</label>
 
-								{/* Upload Progress Indicators */}
+								{/* Upload Progress Indicator */}
 								{Object.keys(uploadProgress).length > 0 && (
 									<Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-										{Object.entries(uploadProgress).map(([fileId, progress]) => (
-											<Box key={fileId} sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-												<Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-													<Typography sx={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-														Uploading... {Math.round(progress)}%
-													</Typography>
-												</Box>
-												<LinearProgress 
-													variant="determinate" 
-													value={progress} 
-													sx={{
-														height: 6,
-														borderRadius: 3,
-														backgroundColor: 'rgba(var(--border-rgb), 0.2)',
-														'& .MuiLinearProgress-bar': {
-															backgroundColor: 'var(--accent-gold)',
-														},
-													}}
-												/>
-											</Box>
-										))}
+										<Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+											<Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+												Uploading {Object.keys(uploadProgress).length} photo{Object.keys(uploadProgress).length !== 1 ? 's' : ''}...
+											</Typography>
+											<Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--accent-gold)' }}>
+												{overallProgress}%
+											</Typography>
+										</Box>
+										<LinearProgress 
+											variant="determinate" 
+											value={overallProgress} 
+											sx={{
+												height: 8,
+												borderRadius: 4,
+												backgroundColor: 'rgba(var(--border-rgb), 0.2)',
+												'& .MuiLinearProgress-bar': {
+													backgroundColor: 'var(--accent-gold)',
+													borderRadius: 4,
+												},
+											}}
+										/>
 									</Box>
 								)}
 

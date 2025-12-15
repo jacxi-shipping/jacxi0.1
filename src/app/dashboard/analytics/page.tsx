@@ -32,6 +32,7 @@ import {
 } from '@/components/design-system';
 
 import { DashboardSurface, DashboardPanel, DashboardGrid } from '@/components/dashboard/DashboardSurface';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 interface SummaryRow {
   totalShipments: number;
@@ -146,7 +147,7 @@ export default function AnalyticsPage() {
   };
 
   const summaryCards = useMemo(() => {
-    if (!data) return [];
+    if (!data?.summary) return [];
     const summary = data.summary;
     return [
       {
@@ -205,10 +206,11 @@ export default function AnalyticsPage() {
   // Handle error state gracefully, showing error message even if data is null
   if (error && !data) {
     return (
-      <DashboardSurface>
-        <Box sx={{ px: 2, pt: 2 }}>
-          <Breadcrumbs />
-        </Box>
+      <ProtectedRoute>
+        <DashboardSurface>
+          <Box sx={{ px: 2, pt: 2 }}>
+            <Breadcrumbs />
+          </Box>
         <Box
           sx={{
             mx: 2,
@@ -232,22 +234,24 @@ export default function AnalyticsPage() {
           </Button>
         </Box>
       </DashboardSurface>
+      </ProtectedRoute>
     );
   }
 
   if (!data) return null;
 
   const headerMeta = [
-    { label: 'Shipments', value: data.summary.totalShipments },
-    { label: 'Revenue', value: formatCurrency(data.summary.totalRevenue) },
-    { label: 'Admins', value: data.summary.adminUsers },
+    { label: 'Shipments', value: data?.summary?.totalShipments ?? 0 },
+    { label: 'Revenue', value: formatCurrency(data?.summary?.totalRevenue ?? 0) },
+    { label: 'Admins', value: data?.summary?.adminUsers ?? 0 },
   ];
 
   return (
-    <DashboardSurface className="light-surface">
-      <Box sx={{ px: 2, pt: 2 }}>
-        <Breadcrumbs />
-      </Box>
+    <ProtectedRoute>
+      <DashboardSurface className="light-surface">
+        <Box sx={{ px: 2, pt: 2 }}>
+          <Breadcrumbs />
+        </Box>
 
       <Box
         sx={{
@@ -336,7 +340,7 @@ export default function AnalyticsPage() {
         <DashboardPanel title="Shipment volume" description="Six month rolling window" fullHeight>
           <Box sx={{ height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data.shipmentsByMonth}>
+              <LineChart data={data.shipmentsByMonth || []}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="month" stroke="var(--text-secondary)" tickLine={false} axisLine={false} />
                 <YAxis allowDecimals={false} stroke="var(--text-secondary)" tickLine={false} axisLine={false} />
@@ -350,7 +354,7 @@ export default function AnalyticsPage() {
         <DashboardPanel title="Revenue (USD)" description="Paid invoices (six months)" fullHeight>
           <Box sx={{ height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.revenueByMonth}>
+              <BarChart data={data.revenueByMonth || []}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="month" stroke="var(--text-secondary)" tickLine={false} axisLine={false} />
                 <YAxis tickFormatter={(value) => `${Math.round(value / 1000)}k`} stroke="var(--text-secondary)" tickLine={false} axisLine={false} />
@@ -365,5 +369,6 @@ export default function AnalyticsPage() {
         </DashboardPanel>
       </DashboardGrid>
     </DashboardSurface>
+    </ProtectedRoute>
   );
 }

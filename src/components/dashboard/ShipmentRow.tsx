@@ -111,7 +111,7 @@ export default function ShipmentRow({
 					<Typography sx={{ fontSize: { xs: '0.62rem', sm: '0.65rem', md: '0.68rem' }, color: 'var(--text-secondary)' }}>
 						Created: {new Date(createdAt).toLocaleDateString()}
 					</Typography>
-				<Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, minWidth: 0 }}>
+				<Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, minWidth: 0, mt: 0.5 }}>
 					<StatusBadge 
 						status={status} 
 						variant="default" 
@@ -122,7 +122,7 @@ export default function ShipmentRow({
 							status={paymentStatus} 
 							variant="default" 
 							size="sm"
-							icon={<CreditCard sx={{ fontSize: 14 }} />}
+							icon={<CreditCard sx={{ fontSize: 12 }} />}
 						/>
 					)}
 				</Box>

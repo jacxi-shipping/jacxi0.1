@@ -127,7 +127,7 @@ export async function GET() {
 				invoiceNumber: invoice.invoiceNumber,
 				status: invoice.status,
 				totalUSD: formatCurrency(invoice.amount),
-				date: invoice.date,
+				dueDate: invoice.date ? new Date(invoice.date).toISOString() : null,
 			}));
 
 		const topCustomerMap = new Map<
@@ -177,7 +177,7 @@ export async function GET() {
 					email: user.email,
 					shipmentCount: entry?.shipmentCount ?? 0,
 					revenue: formatCurrency(entry?.revenue ?? 0),
-					lastShipmentAt: entry?.lastShipmentDate ?? null,
+					lastShipmentAt: entry?.lastShipmentDate ? new Date(entry.lastShipmentDate).toISOString() : null,
 				};
 			})
 			.sort((a, b) => b.revenue - a.revenue || b.shipmentCount - a.shipmentCount)

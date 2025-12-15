@@ -60,6 +60,26 @@ export default function EditShipmentPage() {
 
   const isAdmin = useMemo(() => session?.user?.role === 'admin', [session]);
 
+  // Calculate overall upload progress for vehicle photos
+  const vehiclePhotosProgress = useMemo(() => {
+    const vehicleProgress = Object.entries(uploadProgress)
+      .filter(([fileId]) => !fileId.includes('arrival'))
+      .map(([, progress]) => progress);
+    if (vehicleProgress.length === 0) return 0;
+    const sum = vehicleProgress.reduce((acc, val) => acc + val, 0);
+    return Math.round(sum / vehicleProgress.length);
+  }, [uploadProgress]);
+
+  // Calculate overall upload progress for arrival photos
+  const arrivalPhotosProgress = useMemo(() => {
+    const arrivalProgress = Object.entries(uploadProgress)
+      .filter(([fileId]) => fileId.includes('arrival'))
+      .map(([, progress]) => progress);
+    if (arrivalProgress.length === 0) return 0;
+    const sum = arrivalProgress.reduce((acc, val) => acc + val, 0);
+    return Math.round(sum / arrivalProgress.length);
+  }, [uploadProgress]);
+
   const {
     register,
     handleSubmit,
@@ -793,32 +813,30 @@ export default function EditShipmentPage() {
                                 </Box>
                             </label>
 
-                            {/* Upload Progress Indicators */}
+                            {/* Upload Progress Indicator */}
                             {Object.keys(uploadProgress).filter(id => !id.includes('arrival')).length > 0 && (
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
-                                    {Object.entries(uploadProgress)
-                                        .filter(([fileId]) => !fileId.includes('arrival'))
-                                        .map(([fileId, progress]) => (
-                                            <Box key={fileId} sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <Typography sx={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                                                        Uploading... {Math.round(progress)}%
-                                                    </Typography>
-                                                </Box>
-                                                <LinearProgress 
-                                                    variant="determinate" 
-                                                    value={progress} 
-                                                    sx={{
-                                                        height: 6,
-                                                        borderRadius: 3,
-                                                        backgroundColor: 'rgba(var(--border-rgb), 0.2)',
-                                                        '& .MuiLinearProgress-bar': {
-                                                            backgroundColor: 'var(--accent-gold)',
-                                                        },
-                                                    }}
-                                                />
-                                            </Box>
-                                        ))}
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                                        <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+                                            Uploading {Object.keys(uploadProgress).filter(id => !id.includes('arrival')).length} photo{Object.keys(uploadProgress).filter(id => !id.includes('arrival')).length !== 1 ? 's' : ''}...
+                                        </Typography>
+                                        <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--accent-gold)' }}>
+                                            {vehiclePhotosProgress}%
+                                        </Typography>
+                                    </Box>
+                                    <LinearProgress 
+                                        variant="determinate" 
+                                        value={vehiclePhotosProgress} 
+                                        sx={{
+                                            height: 8,
+                                            borderRadius: 4,
+                                            backgroundColor: 'rgba(var(--border-rgb), 0.2)',
+                                            '& .MuiLinearProgress-bar': {
+                                                backgroundColor: 'var(--accent-gold)',
+                                                borderRadius: 4,
+                                            },
+                                        }}
+                                    />
                                 </Box>
                             )}
 
@@ -892,32 +910,30 @@ export default function EditShipmentPage() {
                                 </Box>
                             </label>
 
-                            {/* Upload Progress Indicators for Arrival Photos */}
+                            {/* Upload Progress Indicator for Arrival Photos */}
                             {Object.keys(uploadProgress).filter(id => id.includes('arrival')).length > 0 && (
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
-                                    {Object.entries(uploadProgress)
-                                        .filter(([fileId]) => fileId.includes('arrival'))
-                                        .map(([fileId, progress]) => (
-                                            <Box key={fileId} sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <Typography sx={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                                                        Uploading... {Math.round(progress)}%
-                                                    </Typography>
-                                                </Box>
-                                                <LinearProgress 
-                                                    variant="determinate" 
-                                                    value={progress} 
-                                                    sx={{
-                                                        height: 6,
-                                                        borderRadius: 3,
-                                                        backgroundColor: 'rgba(var(--border-rgb), 0.2)',
-                                                        '& .MuiLinearProgress-bar': {
-                                                            backgroundColor: 'var(--accent-gold)',
-                                                        },
-                                                    }}
-                                                />
-                                            </Box>
-                                        ))}
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                                        <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+                                            Uploading {Object.keys(uploadProgress).filter(id => id.includes('arrival')).length} photo{Object.keys(uploadProgress).filter(id => id.includes('arrival')).length !== 1 ? 's' : ''}...
+                                        </Typography>
+                                        <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--accent-gold)' }}>
+                                            {arrivalPhotosProgress}%
+                                        </Typography>
+                                    </Box>
+                                    <LinearProgress 
+                                        variant="determinate" 
+                                        value={arrivalPhotosProgress} 
+                                        sx={{
+                                            height: 8,
+                                            borderRadius: 4,
+                                            backgroundColor: 'rgba(var(--border-rgb), 0.2)',
+                                            '& .MuiLinearProgress-bar': {
+                                                backgroundColor: 'var(--accent-gold)',
+                                                borderRadius: 4,
+                                            },
+                                        }}
+                                    />
                                 </Box>
                             )}
 

@@ -196,22 +196,25 @@ function formatStatusText(status: string): string {
 // Size configurations
 const sizeConfig = {
   sm: {
-    fontSize: '0.75rem',
-    padding: '2px 8px',
-    height: '20px',
+    fontSize: '0.6875rem',
+    padding: '3px 10px',
+    height: '22px',
     dotSize: '6px',
+    gap: '4px',
   },
   md: {
-    fontSize: '0.8125rem',
+    fontSize: '0.75rem',
     padding: '4px 12px',
     height: '24px',
     dotSize: '8px',
+    gap: '6px',
   },
   lg: {
-    fontSize: '0.875rem',
+    fontSize: '0.8125rem',
     padding: '6px 16px',
     height: '28px',
     dotSize: '10px',
+    gap: '8px',
   },
 };
 
@@ -235,27 +238,46 @@ export default function StatusBadge({
         sx={{
           display: 'inline-flex',
           alignItems: 'center',
-          gap: 0.5,
+          justifyContent: 'center',
+          gap: config.gap,
           height: config.height,
           px: config.padding,
-          borderRadius: 2,
+          borderRadius: '12px',
           backgroundColor: colors.bg,
           border: '1px solid',
-          borderColor: 'transparent',
+          borderColor: colors.border,
           fontSize: config.fontSize,
           fontWeight: 600,
           color: colors.text,
           whiteSpace: 'nowrap',
           transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
+          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+          '&:hover': {
+            transform: 'translateY(-1px)',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+          },
         }}
       >
-        {icon && <Box sx={{ display: 'flex', fontSize: '1em' }}>{icon}</Box>}
+        {icon && (
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center',
+              fontSize: `${parseFloat(config.fontSize) * 0.9}rem`,
+              lineHeight: 1,
+            }}
+          >
+            {icon}
+          </Box>
+        )}
         <Typography
           component="span"
           sx={{
             fontSize: 'inherit',
             fontWeight: 'inherit',
-            letterSpacing: '0.02em',
+            letterSpacing: '0.025em',
+            lineHeight: 1,
+            textTransform: 'capitalize',
           }}
         >
           {formatStatusText(status)}
@@ -273,7 +295,7 @@ export default function StatusBadge({
         sx={{
           display: 'inline-flex',
           alignItems: 'center',
-          gap: 1,
+          gap: config.gap,
           fontSize: config.fontSize,
           fontWeight: 500,
           color: 'var(--text-primary)',
@@ -286,14 +308,28 @@ export default function StatusBadge({
             borderRadius: '50%',
             backgroundColor: colors.text,
             flexShrink: 0,
+            boxShadow: `0 0 0 2px ${colors.bg}`,
           }}
         />
-        {icon && <Box sx={{ display: 'flex', fontSize: '1em', color: colors.text }}>{icon}</Box>}
+        {icon && (
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              fontSize: `${parseFloat(config.fontSize) * 0.9}rem`,
+              color: colors.text,
+              lineHeight: 1,
+            }}
+          >
+            {icon}
+          </Box>
+        )}
         <Typography
           component="span"
           sx={{
             fontSize: 'inherit',
             fontWeight: 'inherit',
+            textTransform: 'capitalize',
+            lineHeight: 1,
           }}
         >
           {formatStatusText(status)}
@@ -311,12 +347,13 @@ export default function StatusBadge({
         sx={{
           display: 'inline-flex',
           alignItems: 'center',
-          gap: 0.5,
+          justifyContent: 'center',
+          gap: config.gap,
           height: config.height,
           px: config.padding,
-          borderRadius: 2,
+          borderRadius: '12px',
           backgroundColor: 'transparent',
-          border: '1px solid',
+          border: '1.5px solid',
           borderColor: colors.border,
           fontSize: config.fontSize,
           fontWeight: 600,
@@ -325,16 +362,31 @@ export default function StatusBadge({
           transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': {
             backgroundColor: colors.bg,
+            transform: 'translateY(-1px)',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
           },
         }}
       >
-        {icon && <Box sx={{ display: 'flex', fontSize: '1em' }}>{icon}</Box>}
+        {icon && (
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center',
+              fontSize: `${parseFloat(config.fontSize) * 0.9}rem`,
+              lineHeight: 1,
+            }}
+          >
+            {icon}
+          </Box>
+        )}
         <Typography
           component="span"
           sx={{
             fontSize: 'inherit',
             fontWeight: 'inherit',
-            letterSpacing: '0.02em',
+            letterSpacing: '0.025em',
+            textTransform: 'capitalize',
+            lineHeight: 1,
           }}
         >
           {formatStatusText(status)}
